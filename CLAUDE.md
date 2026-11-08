@@ -1,8 +1,8 @@
-# Graph Converter website
+# Map Converter website
 
-This repository is public and builds https://graph-converter.github.io: the Converter (yEd GraphML, CellDesigner and
+This repository is public and builds https://map-converter.github.io: the Converter (yEd GraphML, CellDesigner and
 SBGN-ML, both ways), its description, architecture and documentation pages, and a copy of Newt. Moved here from the
-Metabolism Regulation website on 2026-11-08 (user); "graph-converter" is a temporary name. The addresses keep their
+Metabolism Regulation website on 2026-11-08 (user); The addresses keep their
 `/converter/...` paths, so links and the documentation's own links work unchanged; `/` leads to `/converter/`.
 
 Names: this repository is public and names no private repository, in files, pages, code comments or commit messages.
