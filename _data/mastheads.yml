@@ -1,0 +1,9 @@
+# The Converter's own menu (user, 2026-11-02, moved here from the Metabolism Regulation site 2026-11-08); the site's
+# name, subtitle and logo above it.
+converter:
+  plain: true
+  nav:
+    - {label: "Converter", url: "/converter/"}
+    - {label: "Description", url: "/converter/description/"}
+    - {label: "Architecture", url: "/converter/architecture/"}
+    - {label: "Documentation", url: "/converter/docs/", under: true}
