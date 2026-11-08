@@ -16,7 +16,8 @@ Names: this repository is public and names no private repository, in files, page
 - `newt/` is a copy of Newt (iVis-at-Bilkent/newt, LGPL-3.0) with one script of ours, `newt/open.js`, opened by the
   Converter's Newt buttons (`_includes/newt-open.js`).
 - Logo beside the name: `images/logo-converter/logo.svg`, the tab icon reversed for the white page, in the grey of the
-  Converter's tick boxes, #626262 (arrows and edge on white; 2026-11-08, in place of the slate one: the page is grey); the tab icon stays in `images/favicon-converter/`.
+  Converter's tick boxes, #626262 (arrows and edge on white; 2026-11-08, in place of the slate one: the page is grey), lines and edge 3.5 of 100 to match the
+  title's light weight (2026-11-08, in place of 5); the `?v=` on `avatar` in `_config.yml` goes up with each new logo so browsers fetch it; the tab icon stays in `images/favicon-converter/`.
 - Hidden: the pages carry `noindex` and are linked from nowhere public. Layout, styles and `meta.html` are copies from
   the Metabolism Regulation website (2026-11-08).
 - A change counts only when it is live, checked on the site itself.
