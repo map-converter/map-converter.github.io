@@ -708,7 +708,10 @@ draws and exports "free input:precursor", the prefix with the label.
 What MIRIAM cannot hold goes into the species' SBML notes (XHTML body, CellDesigner's notes panel,
 MINERVA's notes), one line each: "Family: PKA regulatory subunits" and "MAPK3: P@T202 P@Y204" per
 family member with sites (`annotation.notes`, read back by `annotation.from_notes`). An included
-species (complex member) has the lines before its RDF in the same body. The entity's own sites stay in
+species (complex member) has the lines before its RDF in the same body, each ended by a line break (2026-11-10):
+CellDesigner 4.4.2, on saving, drops the text on the same line as the RDF. The user's saves of carnitine and
+glycolysis lost "Family: PKA regulatory subunits" and "PRKAA2: P@T172" so, the identifiers kept; the TLR9 test below
+lost its second line for the same reason. The entity's own sites stay in
 the GraphML property PTM only (user, 2026-10-22: until a case needs them on the drawing).
 
 Units of information not drawn (user, 2026-10-29): the GraphML property "Unit of information", one unit per line,

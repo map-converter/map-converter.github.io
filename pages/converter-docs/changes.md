@@ -10,6 +10,12 @@ noindex: true
 What changed for people who use the converter, newest first, by the date it went to the Converter page.
 Changes inside the code that leave every file the same are listed only when they change the design.
 
+## 2026-11-10
+
+- CellDesigner files: in the notes of a protein inside a complex, every line (a family's name, a member's sites)
+  now ends with a line break, so CellDesigner keeps it when the file is saved. Before, it dropped the last line,
+  the one written right against the identifiers ("Family: PKA regulatory subunits"). The identifiers were never lost.
+
 ## 2026-10-29
 
 - A node property "Unit of information" (one per line) for units the drawing does not show: two forms of one
