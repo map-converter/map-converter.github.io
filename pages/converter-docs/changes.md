@@ -12,6 +12,10 @@ Changes inside the code that leave every file the same are listed only when they
 
 ## 2026-11-10
 
+- CellDesigner files: a line leaving a metabolite keeps its first bend level with where it leaves the circle (no
+  small jog); the two bend points that hold a process glyph where yEd has it never fall inside the reaction's own
+  species (a line no longer runs through a complex); a modifier arc with bends ends on the side of the process
+  glyph it arrives from, so its arrowhead shows (a protein catalysing its own step).
 - CellDesigner files: in the notes of a protein inside a complex, every line (a family's name, a member's sites)
   now ends with a line break, so CellDesigner keeps it when the file is saved. Before, it dropped the last line,
   the one written right against the identifiers ("Family: PKA regulatory subunits"). The identifiers were never lost.

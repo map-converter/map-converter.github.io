@@ -424,6 +424,13 @@ v02: arachidonate -> 15R-HETE), one corner each, matching the yEd elbow.
   the process glyph's side (5 px from the process glyph centre); frame origin the modifier
   centre, x axis to that end (checked through MINERVA: the corner lands
   exactly).
+- From the user's edit of phosphoinositides (2026-11-10): (1) a line that leaves a metabolite circle below its
+  centre (where the name is not) keeps its first bend at that height, not at the circle's centre (a 7 px jog on
+  PI(3,4)P2 -> PI4P and PI3P); (2) the two points that hold a process glyph where yEd has it stay at least 3 px
+  outside both end nodes, or are left out and the glyph sits midway (a point 1 px inside GRB2:GAB1); (3) a bent
+  modifier arc ends on the side of the process glyph facing its last bend, not its modifier's centre (EGF:EGFR,
+  which catalyses its own step, sits on the main line: the arc ended on the far side and its arrowhead was hidden).
+  Confirmed by the user's file: the bends they placed match (1) within 0.6 px.
 - Quarter points on circles (metabolites) sit on the circle at 22.5 degree
   steps (ENE = 22.5 degrees), not at the box quarters (found here: twin
   process glyphs between metabolites were 2 px off).
