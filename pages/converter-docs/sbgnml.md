@@ -123,7 +123,8 @@ then write it. Examples: our own SBGN-ML of every test map, and files saved by N
   the same (Newt stops short of a glyph for the arrowhead); an end at a process's or gate's port at its centre (D26); `necessary stimulation` is `trigger`. A
   compartment's outline width from the render extension's stroke-width; its name placed by its label's bbox, which
   the GraphML writer keeps as a top left, top or top right label (yEd places an internal label by its position).
-- Left out and printed: what our maps do not draw (tag and equivalence arc, annotation
+- An equivalence arc between two drawn glyphs (an entity and a submap, read as a phenotype) is a plain line (2026-11-14).
+- Left out and printed: what our maps do not draw (tag and equivalence arc to it, annotation
   glyphs, clone markers), and arcs of other classes. Association and dissociation are read as the
   generic process (MINERVA, Newt).
 - Perturbing agent and phenotype (user, 2026-10-17): our maps have one glyph for both, the
