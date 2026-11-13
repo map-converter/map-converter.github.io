@@ -44,4 +44,34 @@ default left to choose ([D14](/converter/docs/design/#d14-no-node-moved-the-proc
    species moved inside, against "no node moved". Proposed: (a), the smallest; it keeps membership and
    position, and the growth is the known fault already listed.
 
+8. Reduced notation to SBGN-ML (user, 2026-11-13). Now: an arc between two entities (CellDesigner's reduced
+   notation, the same drawn in yEd) is written into the Process Description file as a stimulation, inhibition,
+   modulation or trigger from entity to entity, dashed ones with "unknown" in the arc's notes. The XSD accepts it,
+   Newt draws it, our reader reads it back; libsbgn's PD rules flag it (SREBP), as PD takes a modulation only on
+   a process. Nothing is lost, but the file is not valid PD. A map in reduced notation only would be fully
+   Activity Flow: every entity an activity (rectangle) with a unit of information for what it is (macromolecule,
+   simple chemical, complex, nucleic acid feature, unspecified entity), the arcs positive, negative or unknown
+   influence and necessary stimulation, gates and phenotypes as they are; the mapping is the one MINERVA
+   discussed for its AF view (its issue 486), the reverse of our AF reader (SBGNML.md).
+   Elsewhere: cd2sbgnml (Balaur et al. 2020, used by Newt) writes PD only and says losing reactions of one kind is
+   unavoidable for mixed maps; MINERVA's SBGN-ML export has had issues of reduced arcs refused as invalid arc
+   types and of modifier reactions to phenotypes turned into processes (its issues 1320, 1445; not read, the
+   tracker blocks automated reads). MINERVA's current output not checked: a test would send a small file of ours
+   to its convert API.
+   Options: (a) keep as now; (b) leave the arcs out (the map loses its regulation, against "as little changed as
+   possible"); (c) a reduced-only map written as Activity Flow, a mixed map as now; (d) a mixed map as Newt's
+   hybrid, an activity beside each entity that has reduced arcs (our reader already folds it back); (e) a mixed
+   map as two files, PD and AF. Proposed: (c), the AF writer being the reverse of the reader; (b) not.
+   Priority (user, 2026-11-13): low. The pipeline is GraphML, CellDesigner and MINERVA (maps to MINERVA); SBGN-ML
+   is a side branch, so (a) stays until SBGN output is needed.
+   MINERVA's output (2026-11-13, from its SBGN-ML of SREBP of 2026-11-10, kept in the workbench's F005-srebp/minerva/):
+   the same as ours. Language process description, the two REDUCED_PHYSICAL_STIMULATION reactions written as
+   stimulation arcs from entity to entity, one from a protein to a phenotype, one from a phenotype to a phenotype (which
+   our converter leaves out, SBGNML.md). No Activity Flow, no process made, nothing dropped. The other kept exports
+   (glycogen, iNOS, eNOS, estrogen, BCAA, nNOS) have no reduced arcs; inhibition, modulation, trigger and dashed types
+   are untested. A live test of those (the small files in tests/celldesigner/) was refused on 2026-11-13: the instance
+   answered 418 "Request Rejected" to every call, as for some minutes on 2026-11-10 after many calls; a temporary
+   block, not a lasting one (the convert API worked from cloud sessions before, without login, notes/minerva-api.md
+   in the workbench).
+
 {% endraw %}
