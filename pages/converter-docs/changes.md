@@ -17,6 +17,8 @@ Changes inside the code that leave every file the same are listed only when they
 - SBGN-ML read: an arc starts and ends where the file says (a point on a glyph's side stays there), compartments keep
   their outline width, and a compartment's name stays at the left, middle or right of its top as in the file. So a
   GraphML or CellDesigner file made from SBGN-ML draws the file's own arc ends.
+- SBGN-ML read: glyphs drawn inside a glyph that holds no members in SBGN (a submap used as a frame, as in the spec's
+  layout example) are read beside it; before, the file could not be converted.
 
 ## 2026-11-10
 

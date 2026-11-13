@@ -74,4 +74,17 @@ default left to choose ([D14](/converter/docs/design/#d14-no-node-moved-the-proc
    block, not a lasting one (the convert API worked from cloud sessions before, without login, notes/minerva-api.md
    in the workbench).
 
+9. Logic gates in SBGN-ML (user, 2026-11-14). The spec gives a logic gate two ports, as a process: the incoming
+   logic arcs go to one end, the outgoing arc leaves from the other. Our SBGN-ML gives gates ports but draws their arcs
+   straight from centre to centre (rule of 2026-10-18), and our yEd maps draw a gate without antennas. Decided for now
+   (user): keep it, knowing it is not strict SBGN ("we kind of have to stick to official SBGN rules ... otherwise,
+   community will not accept it"); to be forced later. Open: the antenna length; that Newt breaks this rule on
+   purpose for layout's sake (with antennas a good layout is harder to keep).
+10. Phenotype and perturbing agent (user, 2026-11-14). In SBGN PD a phenotype takes incoming arcs only (it points
+    to a result); a perturbing agent (ultraviolet light, an outside influence) has outgoing arcs only, to a process.
+    CellDesigner has neither as such, and our maps use its phenotype for several things, submaps among them, so an
+    arc leaving a phenotype is left out of SBGN-ML now (2026-10-17). Other groups' SBGN-ML maps draw both properly and
+    must be shown as drawn: the perturbing agent then needs a glyph of our own in the yEd palette's place (the palette
+    seems to have none). Open, problem by problem with the external maps.
+
 {% endraw %}
