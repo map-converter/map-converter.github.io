@@ -123,6 +123,11 @@ then write it. Examples: our own SBGN-ML of every test map, and files saved by N
   the same (Newt stops short of a glyph for the arrowhead); an end at a process's or gate's port at its centre (D26); `necessary stimulation` is `trigger`. A
   compartment's outline width from the render extension's stroke-width; its name placed by its label's bbox, which
   the GraphML writer keeps as a top left, top or top right label (yEd places an internal label by its position).
+- Association, dissociation and perturbing agent (user, 2026-11-14: shown as themselves): read as our maps' glyphs (the
+  generic process, a phenotype) with the node property "SBGN class" holding the class; the GraphML writes a perturbing
+  agent as yEd's PerturbingAgent, the viewer's renderer draws the association's filled circle and the dissociation's
+  circle in a circle from the property, and SBGN-ML is written with the class again (arcs leaving a perturbing agent
+  kept). CellDesigner as before (the generic process, a phenotype).
 - An equivalence arc between two drawn glyphs (an entity and a submap, read as a phenotype) is a plain line (2026-11-14).
 - Left out and printed: what our maps do not draw (tag and equivalence arc to it, annotation
   glyphs, clone markers), and arcs of other classes. Association and dissociation are read as the
