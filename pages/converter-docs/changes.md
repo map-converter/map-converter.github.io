@@ -10,6 +10,14 @@ noindex: true
 What changed for people who use the converter, newest first, by the date it went to the Converter page.
 Changes inside the code that leave every file the same are listed only when they change the design.
 
+## 2026-11-14
+
+- SBGN-ML (advanced) keeps every bend of the map, not only the key ones; the files for Newt and the straight ones as
+  before. Compartments keep their outline width ([D26](/converter/docs/design/#d26-our-sbgn-ml-draws-as-our-graphml)).
+- SBGN-ML read: an arc starts and ends where the file says (a point on a glyph's side stays there), compartments keep
+  their outline width, and a compartment's name stays at the left, middle or right of its top as in the file. So a
+  GraphML or CellDesigner file made from SBGN-ML draws the file's own arc ends.
+
 ## 2026-11-10
 
 - CellDesigner files: a line leaving a metabolite keeps its first bend level with where it leaves the circle (no

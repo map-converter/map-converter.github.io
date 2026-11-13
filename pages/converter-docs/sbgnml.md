@@ -21,7 +21,8 @@ cd2sbgnml read. First direction (user, 2026-10-17): from yEd GraphML; then the w
   from its label; an arc leaving a phenotype is left out, the phenotype kept (see the way back).
 - Complex members are child glyphs of the complex. An entity in a compartment gets its
   `compartmentRef` (the nearest compartment around it); compartments come first, drawn under
-  the rest. A compartment's label keeps its place (label bbox from the yEd label).
+  the rest. A compartment's label keeps its place (label bbox from the yEd label), and its outline width
+  (the render extension's stroke-width, D26).
 - State variables: `P@S455` is value `P`, variable `S455` (the spec's own example: P@T286),
   placed where yEd has the icon. Units of information along the top edge, as the GraphML writer.
 - Processes and gates get the two ports the spec asks for (2.10), on the line from the inputs
@@ -42,6 +43,8 @@ cd2sbgnml read. First direction (user, 2026-10-17): from yEd GraphML; then the w
   its main reactant and product (`celldesigner.straight`: in CellDesigner the bends placed the
   process glyph), the gates where CellDesigner has them; advanced reads CellDesigner's own geometry
   (`celldesigner.read(path)`).
+- Every bend in the plain advanced file (user, 2026-11-14, D26: our SBGN-ML draws as our GraphML), only a bend
+  exactly on the line between its neighbours left out. For Newt and in straight, as before:
 - Key bends only (user, 2026-10-18): a bend stays if leaving it out moves the line by more than
   20 px (`layout.bends`, as for CellDesigner), or the line without it runs through a node it does not
   run through now; then those within 5 px of the line through their neighbours go. Straight: an
@@ -115,8 +118,11 @@ then write it. Examples: our own SBGN-ML of every test map, and files saved by N
   from it too, names and state variables and units (D23).
 - Annotation: `bqbiol:is` (one entity) and `bqbiol:hasVersion` (a family) from identifiers.org
   links (db:id, the older db/id) or MIRIAM URNs, into the node properties `annotation.py` reads.
-- Arcs: ports back to their glyph, bends from `next` points; the ends at the centres (ports
-  0, 0, our yEd convention); `necessary stimulation` is `trigger`.
+- Arcs: ports back to their glyph, bends from `next` points; an end where the file puts it (a yEd port), unless it
+  lies on the line from the glyph's centre toward its next point, which the centre (0, 0, our yEd convention) draws
+  the same (Newt stops short of a glyph for the arrowhead); an end at a process's or gate's port at its centre (D26); `necessary stimulation` is `trigger`. A
+  compartment's outline width from the render extension's stroke-width; its name placed by its label's bbox, which
+  the GraphML writer keeps as a top left, top or top right label (yEd places an internal label by its position).
 - Left out and printed: what our maps do not draw (tag and equivalence arc, annotation
   glyphs, clone markers), and arcs of other classes. Association and dissociation are read as the
   generic process (MINERVA, Newt).

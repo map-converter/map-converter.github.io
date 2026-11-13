@@ -297,4 +297,24 @@ one line. Names show the form for the reader ("TLR9-C", "TLR9-N"). **Consequence
 apart with one identifier; the units survive CellDesigner's save (a member's note keeps only its first line, hence
 one line). No reference file changed.
 
+## D26. Our SBGN-ML draws as our GraphML
+
+**2026-11-14, accepted, built.** **Context**: the viewer's demo draws each of our 21 GraphML maps back from the
+SBGN-ML this converter writes (advanced), so the two can be compared (user, 2026-11-14: "our converter's output from
+GraphML"; any difference is ours). Over the 832 arcs, 191 lost bends (key bends only, D-rule of 2026-10-18) and 265
+had their ends moved to the centre (the reader ignored where the file's arcs start and end); compartment names went to
+the top centre and their outlines to the template's width. **Decision** (user, 2026-11-14: "Fix stuff"): the plain
+advanced SBGN-ML keeps every bend (straight and the Newt files keep the key-bends rule); the reader keeps an arc's
+end where the file puts it unless it lies on the line from the glyph's centre toward the arc's next point (the
+centre draws it the same; Newt stops short of a glyph for the arrowhead); a compartment's outline width travels (GraphML
+BorderStyle, SBGN-ML render stroke-width, the model's `weight`); the GraphML writer places a compartment's name
+top left, top or top right by where its label stands. **Consequences**: bends lost 191 to 51 (logic gate arcs, still
+straight by the 2026-10-18 rule, and bends that fall on the line once an end is at a process port), ends 265 to 161
+(all on the line toward the next point, drawing the same); SBGN-ML from other tools keeps its arc ends too, so CellDesigner files
+made from MINERVA's SBGN-ML change where its connection points set one (the tidy moves of glycogen and a few other
+maps); Newt's files read as before. A compartment's name keeps its side and its distance from the top, its exact left
+or right edge approximate (yEd's internal label model has one border distance; the label width is our estimate). 282 reference files and the test maps' SBGN-ML remade. Not changed: phenotypes (SBGN's
+hexagon; our yEd maps draw a rectangle), the arc leaving a phenotype (left out, 2026-10-17), units of information along
+the top edge, rounded bends (SBGN-ML has none).
+
 {% endraw %}
