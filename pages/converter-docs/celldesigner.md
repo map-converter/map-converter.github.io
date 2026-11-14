@@ -11,7 +11,7 @@ Moved here on 2026-10-16. Paths below are those of the
 working repository of the maps at the time. Here the converter is `mapconv/graphml.py` (reader), `model.py`
 and `celldesigner.py` (writer), and the symbol sheet is `docs/components44-overview.png`.
 
-Removed 2026-10-13 (user: only efficient and elegant code): the side connection point
+Removed 2026-10-13 (user: only efficient and elegant code): the side port
 mode (`CENTRE=0`, yEd port offsets, the 16-point snapping), the `--bends`
 mode (yEd bends as edit points, port detection, coordinate frames for main
 lines and modifiers), the antenna for twin processes and the `TWIN` switch.
@@ -88,8 +88,8 @@ CellDesigner, so `diff` against a returned file shows only real changes.
 - Residue angle: runs linearly along the box border; 0 east, pi/4 north-east
   corner, pi/2 north, pi west, 3pi/2 south. Sites without a value need
   `state="empty"`, else they are not drawn.
-- Reaction edit points: frame with origin = reactant connection point, x axis =
-  product connection point - reactant connection point, y axis = x axis turned 90 degrees (screen
+- Reaction edit points: frame with origin = reactant port, x axis =
+  product port - reactant port, y axis = x axis turned 90 degrees (screen
   coordinates). The process glyph sits mid-segment `rectangleIndex`.
 - Modifier `targetLineIndex="-1,2"` = left of the reaction flow, `-1,3` =
   right (side middles); `-1,4`/`-1,5` the left corners, upstream/downstream, `-1,6`/`-1,7`
@@ -97,14 +97,14 @@ CellDesigner, so `diff` against a returned file shows only real changes.
   the user's PDH edit, which uses 6 and 7).
 - Modifier edit points: attribute `editPoints="u,v ..."` on the
   `modification` element, one `lineDirection` per segment. Frame: origin =
-  the modifier's connection point, x axis = to the arc's end on the process
+  the modifier's port, x axis = to the arc's end on the process
   glyph's side (process glyph 10 wide: centre +- 5 across the flow), y axis = x
   axis turned 90 degrees. Found from the user's bends in glycolysis v01 and
   MINERVA's SBGN-ML (match to 1e-7).
 - Unknown species (class UNKNOWN): drawn without an outline. A colour of six hex digits (`ffffff`) is read as
   alpha 00, transparent: ExposomeMap-PM's name tags beside proteins (ERK1 beside MAPK3) and its AOP headings
   are bare text in the user's PDF (CellDesigner 4.4, 2026-10-28).
-- Phenotypes: the connection points lie on the hexagon, not on its box (the user's PDF of ExposomeMap-PM from
+- Phenotypes: the ports lie on the hexagon, not on its box (the user's PDF of ExposomeMap-PM from
   CellDesigner 4.4, 2026-10-28, 190 x 40 boxes, every point that map uses found as a line end in the PDF): the
   tips E and W at the box's middle height, the corners NE, SE, SW, NW h/2 in from the sides, N and S in the middle
   of the flat edges, NNE, SSE, SSW, NNW halfway between the middle and the corner, ENE, ESE, WSW, WNW halfway along
@@ -226,7 +226,7 @@ Our yEd SBGN is mostly a subset of it. Scan of all 14 annotated maps:
   a phenotype (1; CellDesigner draws it as a reduced stimulation),
   compartments.
 
-## Compartments, bends, connection points (estrogen and eNOS v01, 2026-10-13)
+## Compartments, bends, ports (estrogen and eNOS v01, 2026-10-13)
 
 - Compartments: yEd group nodes without an SBGN class. `compartmentAlias`
   class SQUARE at the yEd box, `namePoint` at the top left of the yEd label,
@@ -266,7 +266,7 @@ of v01):
   the node centre (cut at the border). User: preferred as the default; it is
   yEd's default port (offset 0,0). The converter writes it for central
   yEd ports and for ports at the middle of a side; other offsets get the
-  nearest of the 16 connection points. `CENTRE=0` gives the old side connection points.
+  nearest of the 16 ports. `CENTRE=0` gives the old side ports.
 - Edit point frame with a centre end: origin the node centre (checked
   through MINERVA: bends land on the yEd points). For a multimer, the centre
   of the whole box, not of the front shape (eNOS NOSTRIN).
@@ -305,7 +305,7 @@ the user (HSP90 + CAV1:CaM:eNOS -> CaM:HSP90:CAV1:eNOS + CaM).
   The twin antenna (two processes on the same species) stays.
 - Every line end at the centre, whatever port offset yEd has (offsets come from
   the yEd layout; user on eNOS v03: DNM2 joining should go from complex centre
-  to complex centre, not ENE to N). The 16 connection points are used only with
+  to complex centre, not ENE to N). The 16 ports are used only with
   `CENTRE=0`.
 - Extra link to a node centre: `linkAnchor position="INACTIVE"` (base links:
   no linkAnchor; modifiers: no linkTarget).
@@ -323,8 +323,8 @@ the user (HSP90 + CAV1:CaM:eNOS -> CaM:HSP90:CAV1:eNOS + CaM).
   operator's position. A gate CellDesigner saved with bends (PD map histamine signalling,
   Osteoarthritis pd65; read since 2026-10-25): the gate is the last point of `editPoints`, the points
   before it the bends of the line gate -> process, in the frame gate -> process; each input's
-  modification carries its connection point (`linkTarget`) and its bends in the frame input -> gate. Then one `modification` per input, of the
-  modificationType, with `linkTarget` connection point INACTIVE and no targetLineIndex.
+  modification carries its port (`linkTarget`) and its bends in the frame input -> gate. Then one `modification` per input, of the
+  modificationType, with `linkTarget` port INACTIVE and no targetLineIndex.
   Any number of inputs (the user's file `tests/celldesigner/gate-or-multiple.xml`, 2026-10-26: an OR of
   five on a catalysis, the gate's line at targetLineIndex -1,2): every input in `modifiers` and `aliases`,
   one modification each; AND, NOT and the unknown gate ? are read and written the same way (user, 2026-10-26:
@@ -370,22 +370,22 @@ the user (HSP90 + CAV1:CaM:eNOS -> CaM:HSP90:CAV1:eNOS + CaM).
 - Added link's edit points (the user's file `tests/celldesigner/added-link-bends.xml`,
   2026-10-20; checked through MINERVA on all 22 such links of PD map autophagy and
   histamine signalling, exact): a frame as for modifiers, from the link's species end
-  (its connection point, else its centre) to the point where the link joins the main line, or the
+  (its port, else its centre) to the point where the link joins the main line, or the
   other way for a product (join -> species). The join is on the segment with the process glyph
   (rectangleIndex), at 3/8 of it for a reactant, 5/8 for a product, the segment's ends
-  where CellDesigner draws them (a species' connection point, else its border). Read; the writer
+  where CellDesigner draws them (a species' port, else its border). Read; the writer
   still writes added links straight.
 - Added reactant/product links to a centre: no linkAnchor (CellDesigner's
   save of mevalonate v01 dropped the INACTIVE written there before).
 
-## Twin processes by quarter connection points; gate inputs as saved (2026-10-13)
+## Twin processes by quarter ports; gate inputs as saved (2026-10-13)
 
 From the user's edit of mevalonate v03 without the twin rule
 (`F003-mevalonate/sources/F003-mevalonate-v03-without-twin-rule-cd442-edited.xml`):
 
 - Two processes on the same two species (phosphorylation and
   dephosphorylation of HMGCR): no edit points. Each is a straight line
-  between quarter connection points on the facing sides of the two boxes: the
+  between quarter ports on the facing sides of the two boxes: the
   process above the line between the centres uses the upper quarters (ENE /
   WNW), the one below the lower (ESE / WSW); for boxes stacked vertically the
   left (NNW / SSW) or right (NNE / SSE) quarters. Which side: where yEd has
@@ -462,7 +462,7 @@ What the edits show:
   after moves; the converter's bends were kept. New by hand: 3 (a modifier
   in mevalonate, a main line in glycogen muscle, a modifier in
   phosphoinositides); removed by hand: 2 (TAG stimulation arcs). No rule.
-- Stimulations without a process: CellDesigner drops the INACTIVE connection points;
+- Stimulations without a process: CellDesigner drops the INACTIVE ports;
   the converter now writes none (SREBP, ACLY).
 - Modifier attachment: CellDesigner also uses targetLineIndex -1,5 (TAG);
   the Startup Guide's figure numbers the process glyph's points 2-4 (top) and 5-7
@@ -497,7 +497,7 @@ What the edits show:
 ## Seen in the old files, not yet in the converter
 
 - Extra reactants/products: `listOfReactantLinks` / `listOfProductLinks`
-  with their own connection point, connect scheme and line.
+  with their own port, connect scheme and line.
 - (Boolean gates: in the converter since 2026-10-13. TRIGGER, PHYSICAL_STIMULATION,
   INHIBITION modifiers are written; TRIGGER and PHYSICAL_STIMULATION first
   checked with glutaminase v01.)
@@ -585,7 +585,7 @@ is the necessary minimum: simple rules, a basic and reliable conversion improved
 - No node is moved for a route. A routed arc that runs through another node is reported
   ("n1::n38: the arc from α-ketoisocaproate runs through PPM1K:Mn2+"), for the user to move in
   CellDesigner (the script moved PPM1K:Mn2+ 20 px; the user's check moved it 36 px right instead).
-- Lanes left a metabolite (SimpleChemical) 12 px lower (the script recognised it by its 36 px width); since 2026-10-16 replaced by the connection points in "Metabolite circles: where lines meet them".
+- Lanes left a metabolite (SimpleChemical) 12 px lower (the script recognised it by its 36 px width); since 2026-10-16 replaced by the ports in "Metabolite circles: where lines meet them".
 BCAA: identical to v04 except the 20 px move (process glyphs, edit points, line directions compared).
 
 ## Metabolite circles: where lines meet them (advanced)
@@ -604,7 +604,7 @@ lane leaving a metabolite sideways starts 12 px lower.)
 
 Worked out on PD02 eicosanoids (CellDesigner -> GraphML -> CellDesigner, `test_round_trip`) and
 the user's CellDesigner edits of pyrimidine (v05-v08), iNOS (v07, v08), urea cycle (v02), BCAA
-(checked v04). Principle (user): write a connection point or edit point only where it changes the drawing,
+(checked v04). Principle (user): write a port or edit point only where it changes the drawing,
 and move a node before adding bend points; points that change nothing make relayout by hand
 harder. When the converter already has a line straight, keep it: CellDesigner's view can show it
 a few px off (the user's moves of ERK1/2, 6 px, and SIRT5, 4 px, made lines the converter had
@@ -622,7 +622,7 @@ Geometry of a main line:
   ASL, ASS1). An L whose bend is more than 20 px from that corner keeps its slanting leg; other
   routes keep every bend that moves the line by more than 20 px (`layout.bends`: PD02's Z
   routes and detours round other nodes).
-- Connection points: where the yEd arc meets the entity's border (nearest of CellDesigner's 16; on a
+- Ports: where the yEd arc meets the entity's border (nearest of CellDesigner's 16; on a
   metabolite E and W become ESE and WSW), else on a metabolite where its name is not (section
   above). Kept only if it moves the line more than 2 px from the line to the centre.
 - Two processes on the same two species, both drawn straight: quarter points.
@@ -637,7 +637,7 @@ Geometry of a main line:
   the 28 Atlas maps), and below 3 px two points per reaction would add clutter for nothing seen.
 - A main line yEd draws level into a larger node through an end point beside its centre (more than 3 px):
   one edit point on the line, 3 px outside that node (`EDGE`), the line on to the centre from there (no
-  connection point). Under the node (first try, 2026-10-24) it showed: CellDesigner draws lines over nodes, so the
+  port). Under the node (first try, 2026-10-24) it showed: CellDesigner draws lines over nodes, so the
   line ran to the centre (user, 2026-10-24; iNOS CaM -> CaM:iNOS 23.6 px, mevalonate
   AMPK 14.4 px, glycolysis extended IRS1 22 px, SREBP 4.5 px, cAMP 3.7 px). Until 2026-10-24 the other end
   was moved onto the centre line.
@@ -662,7 +662,7 @@ corner). Back to yEd (advanced) the arc ends at the same point of the 18 px proc
 GraphML -> CellDesigner gives PDH's drawing twice (`test_repeat`).
 The route: the yEd route made orthogonal; from an off-centre yEd port a lane at the process glyph's
 height from just outside the node, only if the port is off the line from the centre by more than
-2 px; a slanting straight arc from a port on the border takes that connection point. No edit point on a
+2 px; a slanting straight arc from a port on the border takes that port. No edit point on a
 straight line between its neighbours (`layout.unbent`, also used on the way back).
 
 Both layouts: CellDesigner writes a complex's name at the bottom inside it. Its members move up to

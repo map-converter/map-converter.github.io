@@ -45,7 +45,7 @@ Lines that are horizontal or vertical in yEd and come out a few degrees off in t
 CellDesigner file. Measured on `tests/maps/` (yEd against `expected-advanced.xml` read back):
 segments 0.5 to 10 degrees off, glycogen 16 (yEd 7), eNOS 10 (yEd 7), mevalonate 8 (yEd 3),
 PDH 6 (yEd 0), mostly 1 to 10 px sideways (in PDH all six exactly 4.0 px, at the process),
-likely CellDesigner's fixed connection points and node size changes. Not confirmed in CellDesigner.
+likely CellDesigner's fixed ports and node size changes. Not confirmed in CellDesigner.
 The long diagonals from the rule "straight lines except one long L" are intended, not flagged,
 and the straight layout is not checked.
 

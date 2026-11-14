@@ -159,7 +159,7 @@ as before D14. "CellDesigner (no move)" (`-advanced-nomove.xml`, `--no-move`) is
 moves no node (D14's rules), worked on until it can take over. Straight line moves no node either.
 Multimers stay dimers with N:x (D15) in every file. **Consequences**: the advanced files are those of before
 D14 byte for byte, apart from multimers. The no-move steps, each a file to compare: straight (no bends),
-the advanced drawing without the moves (yEd's key bends, connection points, modifier routes; the "positions kept"
+the advanced drawing without the moves (yEd's key bends, ports, modifier routes; the "positions kept"
 file of 2026-10-20 to 2026-10-24, not offered now), and no move (that drawing with process glyphs and ports
 held by edit points).
 
@@ -168,7 +168,7 @@ held by edit points).
 **2026-10-24, accepted, built.** **Context**: the modes compared on the 28 Atlas maps (orthogonal look one
 way, round trips, edit points; QUALITY.md). **Decision**: four CellDesigner files from a GraphML or
 SBGN-ML map, all kept: straight (lines between node centres), straight & bends (the input's key bends,
-connection points and modifier routes), advanced (moved nodes: the tidy moves, the blue button), as drawn
+ports and modifier routes), advanced (moved nodes: the tidy moves, the blue button), as drawn
 (multi-bends: process glyphs and ports held by edit points). Only advanced moves entity nodes. Roles
 (user, 2026-10-24): advanced is the main file, for a one-time conversion and as the base a CellDesigner
 user keeps working on (a map developed in yEd, then edited in CellDesigner); straight & bends the fallback,
@@ -311,7 +311,7 @@ BorderStyle, SBGN-ML render stroke-width, the model's `weight`); the GraphML wri
 top left, top or top right by where its label stands. **Consequences**: bends lost 191 to 51 (logic gate arcs, still
 straight by the 2026-10-18 rule, and bends that fall on the line once an end is at a process port), ends 265 to 161
 (all on the line toward the next point, drawing the same); SBGN-ML from other tools keeps its arc ends too, so CellDesigner files
-made from MINERVA's SBGN-ML change where its connection points set one (the tidy moves of glycogen and a few other
+made from MINERVA's SBGN-ML change where its ports set one (the tidy moves of glycogen and a few other
 maps); Newt's files read as before. A compartment's name keeps its side and its distance from the top, its exact left
 or right edge approximate (yEd's internal label model has one border distance; the label width is our estimate). 282 reference files and the test maps' SBGN-ML remade. Not changed: phenotypes (SBGN's
 hexagon; our yEd maps draw a rectangle), the arc leaving a phenotype (left out, 2026-10-17), units of information along

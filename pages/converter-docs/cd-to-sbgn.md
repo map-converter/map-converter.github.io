@@ -120,7 +120,7 @@ to entity: not a one-language map, but nothing is lost and the way back is possi
 a yEd stimulation arc between two entities becomes PHYSICAL_STIMULATION in reduced notation
 (SREBP, ACLY).
 
-Geometry (2026-10-28): such an arc starts and ends at the connection points CellDesigner names (`linkAnchor` of its
+Geometry (2026-10-28): such an arc starts and ends at the ports CellDesigner names (`linkAnchor` of its
 base reactant and product) and its bends come from its edit points in the frame between those two points, as a
 reaction's main line ([CellDesigner files](/converter/docs/celldesigner/)). Before, the frame ran between the node
 centres, which shifted every bend and broke the shared lanes of a map drawn with them (ExposomeMap-PM: 15 of 492
@@ -146,7 +146,7 @@ segments level or upright, now 280, as CellDesigner draws them).
 | alias bounds | node box (metabolite circles back to the yEd size 60 x 32, centre kept; multimers shrink 6 per unit beyond 2: inverse of the forward rules) |
 | reaction | Process 18 x 18 (our maps' size) where CellDesigner draws the process glyph: midway on the main line's segment `rectangleIndex` |
 | edit points of a reaction or modifier | yEd bends (sharp, as CellDesigner draws them; within 3 px of one line aligned on it, [D22](/converter/docs/design/#d22-bends-from-celldesigner-aligned-within-3-px-drawn-sharp)), from the edit point frame (inverse of `cd_layout.to_frame`); a modifier's frame ends at the point of the process glyph `targetLineIndex` names (side middle, 5 px beside the centre, or corner) |
-| arc ends | node centres (ports 0,0; CellDesigner's quarter connection points only place the process glyph); advanced: connection points as ports, a modifier at the point of the 18 px process `targetLineIndex` names (corners at 9, 9, side middles at 0, 9 across the flow) |
+| arc ends | node centres (ports 0,0; CellDesigner's quarter ports only place the process glyph); advanced: ports as ports, a modifier at the point of the 18 px process `targetLineIndex` names (corners at 9, 9, side middles at 0, 9 across the flow) |
 | MIRIAM annotation | node properties as `mapconv.annotate` writes them (HGNC symbol, HGNC, UniProt, ChEBI; a family's Members and Member annotation) |
 | references on a reaction (`isDescribedBy`, bqbiol or bqmodel: PubMed, DOI, PMC, Reactome) | the process glyph's node property References, `prefix:id` separated by spaces (`pubmed:27260166 doi:10.1016/j.jaci.2020.12.155`); back to CellDesigner as `bqmodel:isDescribedBy`, one bag each ([D21](/converter/docs/design/#d21-references-on-a-process-as-the-node-property-references)) |
 
