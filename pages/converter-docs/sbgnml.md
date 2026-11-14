@@ -26,8 +26,9 @@ cd2sbgnml read. First direction (user, 2026-10-17): from yEd GraphML; then the w
 - State variables: `P@S455` is value `P`, variable `S455` (the spec's own example: P@T286),
   placed where yEd has the icon. Units of information along the top edge, as the GraphML writer.
 - Processes and gates get the two ports the spec asks for (2.10), on the line from the inputs
-  (consumptions, gate inputs) to the outputs, one process width from the centre; the
-  orientation follows. A reversible process (no consumption) sends each product out by the
+  (consumptions, gate inputs) to the outputs, the stick half the glyph's side long (at least 9 px, the viewer's
+  renderer's rule, user 2026-11-14); the orientation follows. Ports the map gives (read from SBGN-ML: an arc's end
+  more than 0.5 px outside the glyph's box) are kept, a missing one mirrored through the centre. A reversible process (no consumption) sends each product out by the
   nearer port.
 - Arcs in SBGN's direction: a consumption from the entity to port 1 (yEd maps also draw it
   from the process), a logic arc from the entity into its gate, products from port 2, a
@@ -120,7 +121,9 @@ then write it. Examples: our own SBGN-ML of every test map, and files saved by N
   links (db:id, the older db/id) or MIRIAM URNs, into the node properties `annotation.py` reads.
 - Arcs: ports back to their glyph, bends from `next` points; an end where the file puts it (a yEd port), unless it
   lies on the line from the glyph's centre toward its next point, which the centre (0, 0, our yEd convention) draws
-  the same (Newt stops short of a glyph for the arrowhead); an end at a process's or gate's port at its centre (D26); `necessary stimulation` is `trigger`. A
+  the same (Newt stops short of a glyph for the arrowhead); an end at a process's or gate's port at the port itself (an arc's start always, its end for a consumption or
+  logic arc; a modifier aimed at a port ends on the glyph)
+  (user, 2026-11-14: each file's own antenna length; was its centre, D26); `necessary stimulation` is `trigger`. A
   compartment's outline width from the render extension's stroke-width; its name placed by its label's bbox, which
   the GraphML writer keeps as a top left, top or top right label (yEd places an internal label by its position).
 - Association, dissociation and perturbing agent (user, 2026-11-14: shown as themselves): read as our maps' glyphs (the

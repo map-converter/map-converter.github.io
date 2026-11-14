@@ -47,13 +47,19 @@ def border(d, p):
     return cx + t * dx, cy + t * dy
 
 
-def at(d, ref, p, q):
+def at(d, ref, p, q, port=None):
     # where an arc read from SBGN-ML meets its glyph, from the glyph's centre (Arc.source_at, target_at): the file's own
     # point (user, 2026-11-14: our SBGN-ML should draw as our GraphML; any tool's arc ends kept as the file gives them),
     # unless it lies on the line from the centre toward the next point q (within 1.5 px), which the centre (0, 0) draws
     # the same wherever on it the end stops (Newt stops short of the glyph for the arrowhead, others on its shape); an
-    # end at a process's or gate's port is its centre, as on our maps
-    if p is None or q is None or ref != d.id:
+    # end at a process's or gate's port is the port itself (user, 2026-11-14: each file's own antenna length; the
+    # renderer draws a port given outside the glyph as it is, its own 0.5 only where none is given), else its centre
+    if ref != d.id:
+        if not port:
+            return (0.0, 0.0)
+        cx, cy = centre(d)
+        return (port[0] - cx, port[1] - cy)
+    if p is None or q is None:
         return (0.0, 0.0)
     (cx, cy) = centre(d)
     ux, uy, vx, vy = q[0] - cx, q[1] - cy, p[0] - cx, p[1] - cy
@@ -131,11 +137,12 @@ def write(diagram, layout='advanced', newt=False):
         s, t, pts, s_at, t_at = a.source, a.target, list(a.points), a.source_at, a.target_at
         if layout == 'straight' and pairs[frozenset((s, t))] == 1 or s in ops or t in ops:
             pts = []
+        given = (s_at, t_at)  # the ends as the map gives them: a port kept (below), gates' arcs drawn straight all the same
         if layout == 'straight' or s in ops or t in ops:
             s_at, t_at = (0.0, 0.0), (0.0, 0.0)
         if a.head is None:
             if s in hubs - eq and t not in hubs:
-                s, t, pts, s_at, t_at = t, s, pts[::-1], t_at, s_at
+                s, t, pts, s_at, t_at, given = t, s, pts[::-1], t_at, s_at, given[::-1]
             cls = 'logic arc' if t in ops or s in eq else 'consumption'
         else:
             cls = ARC.get(a.head)
@@ -146,7 +153,7 @@ def write(diagram, layout='advanced', newt=False):
                        % (a.id, s, N[s].labels[0] if N[s].labels else '')); continue
         if a.tail:
             report.say('left out', 'arc %s: its arrow at the source has no place in SBGN-ML, dropped' % a.id)
-        arcs.append((a, cls, s, t, pts, s_at, t_at))
+        arcs.append((a, cls, s, t, pts, s_at, t_at, given))
 
     # a process or gate has two ports, on the line from its inputs to its outputs (the spec,
     # 2.10): port 1 where the consumptions (gate inputs) come in, port 2 where the products leave.
@@ -156,6 +163,21 @@ def write(diagram, layout='advanced', newt=False):
         ins = [pts[-1] if pts else centre(N[s]) for _, c, s, t, pts, *_ in arcs if t == p and c in ('consumption', 'logic arc')]
         outs = [pts[0] if pts else centre(N[t]) for _, c, s, t, pts, *_ in arcs if s == p and (c == 'production' or p in ops)]
         (cx, cy), w, h = centre(N[p]), N[p].box[2], N[p].box[3]
+        # a port the map gives (an arc's end more than 0.5 px outside the glyph's box: read from SBGN-ML, user
+        # 2026-11-14) is kept, the other one mirrored through the centre; both in one place (a file's slip): neither.
+        # The same rule as the renderer's (the viewer's yrender, its header: ports), the master
+        out_of = lambda o: abs(o[0]) > w / 2 + 0.5 or abs(o[1]) > h / 2 + 0.5
+        gin = next(((cx + g[1][0], cy + g[1][1]) for _, c, s, t, _, _, _, g in arcs
+                    if t == p and c in ('consumption', 'logic arc') and out_of(g[1])), None)
+        gout = next(((cx + g[0][0], cy + g[0][1]) for _, c, s, t, _, _, _, g in arcs
+                     if s == p and (c == 'production' or p in ops) and out_of(g[0])), None)
+        if gin and gout and math.dist(gin, gout) < 2:
+            gin = gout = None
+        if gin or gout:
+            one = gin or (2 * cx - gout[0], 2 * cy - gout[1])
+            two = gout or (2 * cx - gin[0], 2 * cy - gin[1])
+            ports[p] = ('horizontal' if abs(two[0] - one[0]) >= abs(two[1] - one[1]) else 'vertical', one, two)
+            continue
         mean = lambda q, d: (sum(x for x, _ in q) / len(q), sum(y for _, y in q) / len(q)) if q else d
         a, b = mean(ins, (cx, cy)), mean(outs, (cx, cy))
         if a == b:  # reversible (products on both sides): the line through the first two
@@ -164,8 +186,10 @@ def write(diagram, layout='advanced', newt=False):
         vx, vy = b[0] - a[0], b[1] - a[1]
         horizontal = abs(vx) >= abs(vy)
         k = (1 if (vx if horizontal else vy) >= 0 else -1)
-        one = (cx - k * w, cy) if horizontal else (cx, cy - k * h)
-        two = (cx + k * w, cy) if horizontal else (cx, cy + k * h)
+        side = w if horizontal else h
+        r = side / 2 + max(0.5 * side, 9)  # the renderer's antenna: half the side, at least 9 px (user, 2026-11-14)
+        one = (cx - k * r, cy) if horizontal else (cx, cy - k * r)
+        two = (cx + k * r, cy) if horizontal else (cx, cy + k * r)
         ports[p] = ('horizontal' if horizontal else 'vertical', one, two)
     if layout == 'straight':  # no ports: every arc runs from centre to centre (user, 2026-10-18)
         ports = {}
@@ -294,7 +318,7 @@ def write(diagram, layout='advanced', newt=False):
         return {i for i, d in N.items() if d.kind != 'Compartment' and i not in ends and (d.parent is None or N[d.parent].kind == 'Compartment')
                 and d.box[0] < max(xs) and min(xs) < d.box[0] + d.box[2] and d.box[1] < max(ys) and min(ys) < d.box[1] + d.box[3]
                 and any(cuts(p, q, d.box) for p, q in zip(line, line[1:]))}
-    for a, cls, s, t, pts, s_at, t_at in arcs:
+    for a, cls, s, t, pts, s_at, t_at, _ in arcs:
         if ids[s] not in made or ids[t] not in made:
             continue
         # the ends: a process's or gate's port on its flux side, else where the arc meets the
@@ -412,7 +436,7 @@ def read(path):
                 and st.find(R + 'g').get(a) for i in (st.get('idList') or '').split()}
     fill, line, weight, font = style('fill'), style('stroke'), style('stroke-width', float), style('font-size', float)
     line = {i: c for i, c in line.items() if colour(c, defs) != '#000000'}  # black: the default outline
-    port = {}
+    port, at_port = {}, {}
     nodes, skipped, activities, renamed = {}, {}, set(), []
 
     def text(g):
@@ -440,6 +464,7 @@ def read(path):
             skipped.setdefault(cls, []).append(i); return
         for p in g.findall(S + 'port'):
             port[p.get('id')] = i
+            at_port[p.get('id')] = (float(p.get('x')), float(p.get('y')))
         states, units = [], []
         for c in g.findall(S + 'glyph'):
             cb = c.find(S + 'bbox')
@@ -492,10 +517,12 @@ def read(path):
         if cls not in head or s not in nodes or t not in nodes:
             skipped.setdefault(cls + ' arc' if cls not in head else 'arc to a glyph left out', []).append(a.get('id')); continue
         pts = [(float(p.get('x')), float(p.get('y'))) for p in a.findall(S + 'next')]
+        flux = cls in ('consumption', 'logic arc')  # a port where an arc starts (a product, a gate's output) is kept, where
+        # it ends only for these: a modifier aimed at a port ends on the glyph (the review, 2026-11-14)
         ends = [(float(e.get('x')), float(e.get('y'))) if e is not None else None for e in (a.find(S + 'start'), a.find(S + 'end'))]
         arcs.append(Arc(id=a.get('id'), source=s, target=t, head=head[cls], dashed=UNKNOWN in text_of(a), points=pts,
-                        source_at=at(nodes[s], a.get('source'), ends[0], (pts or ends[1:])[0]),
-                        target_at=at(nodes[t], a.get('target'), ends[1], (pts[-1:] or ends[:1])[0])))
+                        source_at=at(nodes[s], a.get('source'), ends[0], (pts or ends[1:])[0], at_port.get(a.get('source'))),
+                        target_at=at(nodes[t], a.get('target'), ends[1], (pts[-1:] or ends[:1])[0], flux and at_port.get(a.get('target')))))
     for t, ps in performers.items():
         if len(ps) > 1:  # which entity it stands for is not guessed
             skipped.setdefault('performance arc', []).extend(i for _, i in ps); continue

@@ -86,5 +86,12 @@ default left to choose ([D14](/converter/docs/design/#d14-no-node-moved-the-proc
     arc leaving a phenotype is left out of SBGN-ML now (2026-10-17). Other groups' SBGN-ML maps draw both properly and
     must be shown as drawn: the perturbing agent then needs a glyph of our own in the yEd palette's place (the palette
     seems to have none). Open, problem by problem with the external maps.
+    Decided (user, 2026-11-14: "we can read it, we can show it. This is enough. For conversion, it's a different matter
+    ... during conversion, after conversion. But for now, it's okay"): reading and showing done (yEd's PerturbingAgent
+    and the node property "SBGN class", drawn by yrender as SBGN's glyph). A file converted from SBGN-ML into our
+    formats takes our maps' conventions: a perturbing agent becomes a phenotype in GraphML and CellDesigner, and a
+    submap a phenotype too in place of yEd's rectangle (CellDesigner does both already: its phenotype); tags are left
+    out where they stand alone, with no submap (they are now everywhere, so nothing changes). Not built: the drawing
+    route (the viewer) and the conversion would then part on these glyphs; for later, on the user's word.
 
 {% endraw %}
