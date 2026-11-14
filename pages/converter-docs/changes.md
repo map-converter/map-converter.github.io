@@ -12,6 +12,8 @@ Changes inside the code that leave every file the same are listed only when they
 
 ## 2026-11-14
 
+- SBGN-ML read: every glyph keeps its outline colour and width from the file, not only compartments, so GraphML made
+  from Newt's files has their grey outlines ([D27](/converter/docs/design/#d27-every-glyphs-outline-colour-and-width-from-sbgn-ml)).
 - SBGN-ML (advanced) keeps every bend of the map, not only the key ones; the files for Newt and the straight ones as
   before. Compartments keep their outline width ([D26](/converter/docs/design/#d26-our-sbgn-ml-draws-as-our-graphml)).
 - SBGN-ML read: an arc starts and ends where the file says (a point on a glyph's side stays there), compartments keep

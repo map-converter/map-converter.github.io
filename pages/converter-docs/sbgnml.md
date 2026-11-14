@@ -114,8 +114,8 @@ then write it. Examples: our own SBGN-ML of every test map, and files saved by N
   a multimer gets count N from its N:x unit, else 2; a gate keeps AND, OR, NOT as its label.
 - Parents: a complex's child glyphs; else `compartmentRef`.
 - State variables: value and variable back to `P@S455`, placed by the centre of their bbox.
-- Colours from the render extension (a colour id or the value itself; MINERVA writes the value), a
-  compartment's outline from its `stroke` (D24); font sizes
+- Colours from the render extension (a colour id or the value itself; MINERVA writes the value), every glyph's
+  outline colour and width from its `stroke` and `stroke-width` (D24, D27; black is the default and not kept); font sizes
   from it too, names and state variables and units (D23).
 - Annotation: `bqbiol:is` (one entity) and `bqbiol:hasVersion` (a family) from identifiers.org
   links (db:id, the older db/id) or MIRIAM URNs, into the node properties `annotation.py` reads.

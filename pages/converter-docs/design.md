@@ -317,4 +317,16 @@ or right edge approximate (yEd's internal label model has one border distance; t
 hexagon; our yEd maps draw a rectangle), the arc leaving a phenotype (left out, 2026-10-17), units of information along
 the top edge, rounded bends (SBGN-ML has none).
 
+## D27. Every glyph's outline colour and width from SBGN-ML
+
+**2026-11-14, accepted, built.** **Context**: the SBGN-ML reader took the render extension's `stroke` and
+`stroke-width` for compartments only (D24, D26), so every other glyph came out with a black outline of width 1 in
+GraphML. The viewer's editor gets a properties table with Border Color and Border Width (user, 2026-11-14: "here we are
+flexible, and it's flexible in GraphML. So if people want to create some super colorful diagram, they can"), which
+needs the colour and width to travel. **Decision** (user, 2026-11-14): the reader keeps every glyph's outline colour
+(not black, the default) and width, as the GraphML writer and the SBGN-ML writer already write them for any node.
+**Consequences**: GraphML made from Newt's files draws their own outlines (#555555, width 1.25; one map #c0c0c0), as
+Newt draws them: 36 reference GraphML files remade, CellDesigner and SBGN-ML outputs the same (CellDesigner keeps no
+outline colour of a species).
+
 {% endraw %}
