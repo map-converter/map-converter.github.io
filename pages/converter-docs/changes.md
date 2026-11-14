@@ -12,6 +12,9 @@ Changes inside the code that leave every file the same are listed only when they
 
 ## 2026-11-14
 
+- GraphML: an unspecified entity's name at 14 as every other glyph's (its template had 12, in a box sized for 14).
+- A unit of information is at least as wide as N:2 (25 by 16 in GraphML, 21 wide in SBGN-ML), so an empty one is a box
+  to type into, not a sliver; units of three characters or more as before.
 - SBGN-ML read: every glyph keeps its outline colour and width from the file, not only compartments, so GraphML made
   from Newt's files has their grey outlines ([D27](/converter/docs/design/#d27-every-glyphs-outline-colour-and-width-from-sbgn-ml)).
 - SBGN-ML (advanced) keeps every bend of the map, not only the key ones; the files for Newt and the straight ones as
