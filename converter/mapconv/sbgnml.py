@@ -378,17 +378,19 @@ def text_of(el):  # an element's notes as plain text
 KIND = {v: k for k, v in CLASS.items() if k != 'SourceAndSink'}  # source and sink: yEd's EmptySet
 KIND.update(association='Process', dissociation='Process')  # read as the generic process (MINERVA, Newt)
 KIND['perturbing agent'] = 'Phenotype'  # as in CellDesigner
+KIND['perturbation'] = 'Phenotype'  # Activity Flow's perturbation, drawn as the perturbing agent (2026-11-15: CaMKII's Depolarization was left out)
 # SBGN classes our maps draw as another glyph (association and dissociation as the generic process, a perturbing
 # agent as a phenotype), kept as the node property "SBGN class" (user, 2026-11-14: shown as themselves): yrender draws
 # the circles from it, yEd's PerturbingAgent carries the agent in GraphML, and SBGN-ML is written with the class again
-DRAWN_AS = {'association': 'Process', 'dissociation': 'Process', 'perturbing agent': 'Phenotype'}  # class: our glyph (a
+DRAWN_AS = {'association': 'Process', 'dissociation': 'Process', 'perturbing agent': 'Phenotype', 'perturbation': 'Phenotype'}  # class: our glyph (a
 # submap is read as itself, yEd's Submap, a rectangle)
 HEAD = {'consumption': None, 'logic arc': None, 'production': 'production', 'catalysis': 'catalysis',
         'inhibition': 'inhibition', 'modulation': 'modulation', 'stimulation': 'stimulation',
         'necessary stimulation': 'trigger'}
 # Activity Flow (L1V1.2, read only; user, 2026-10-17): an activity is drawn as the entity it comes
 # from, CellDesigner's way. Its unit of information's shape gives the glyph (none: a protein;
-# perturbation: phenotype, as in CellDesigner), its label (the molecule's name) stays a unit; the
+# perturbation: phenotype, as in CellDesigner), its label (the molecule's name) stays a unit, and the
+# node properties "SBGN class" (biological activity) and "SBGN unit" (the unit's entity, if any) keep it (2026-11-15); the
 # influences are arcs between entities; a delay is an Operator labelled tau; a submap is a phenotype
 # with its name, its terminals and the tags left out; an equivalence arc is a plain line (to a terminal:
 # to the submap). In Newt's hybrid maps (PD and AF) an activity joined to its entity by a performance
@@ -450,9 +452,11 @@ def read(path):
         x, y, w, h = (float(g.find(S + 'bbox').get(k)) for k in 'xywh')
         base = cls[:-len(' multimer')] if cls.endswith(' multimer') else cls
         kind = 'Operator' if cls in OPERATORS else KIND.get(base)
+        unit = None  # a biological activity's unit of information: its entity's name, '' for none
         if cls == 'biological activity':
             u = next((c.find(S + 'entity') for c in g.findall(S + 'glyph') if c.get('class') == 'unit of information'), None)
-            kind = ACTIVITY.get((u.get('name') if u is not None else '').replace(' multimer', ''), 'Macromolecule')
+            unit = (u.get('name') or '') if u is not None else ''
+            kind = ACTIVITY.get(unit.replace(' multimer', ''), 'Macromolecule')
             activities.add(i)
             if re.search(r'\sactivity\s*$', text(g), re.I):  # the node is the molecule: "SHC activity" is SHC (user, 2026-10-19)
                 g.find(S + 'label').set('text', re.sub(r'\s+activity\s*$', '', text(g), flags=re.I))
@@ -491,6 +495,12 @@ def read(path):
         data = from_notes(text_of(g), data)
         if cls in DRAWN_AS:  # drawn as itself, read as the glyph our maps use (user, 2026-11-14)
             data['SBGN class'] = cls
+        # an activity drawn as its entity stays one (user, 2026-11-15: an Activity Flow map saved as Activity Flow): its
+        # class, and its unit's entity where it has one ("if there is no auxiliary unit, it's a protein activity")
+        if unit is not None:
+            data['SBGN class'] = cls
+            if unit:
+                data['SBGN unit'] = unit
         nodes[i] = Node(id=i, kind=kind, box=(x, y, w, h), parent=parent,
                         labels=[OPERATORS[cls]] if kind == 'Operator' else [text(g)],
                         fill=colour(fill.get(i), defs), line=colour(line.get(i), defs),

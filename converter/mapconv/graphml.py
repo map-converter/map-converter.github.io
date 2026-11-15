@@ -267,7 +267,7 @@ def write(diagram, soft=False):
             missing.setdefault(d.kind, []).append(i); return
         n = copy.deepcopy(tpl[name])
         n.set('id', i)
-        if d.kind == 'Phenotype' and d.data.get('SBGN class') == 'perturbing agent':  # yEd's own glyph for it (2026-11-14)
+        if d.kind == 'Phenotype' and d.data.get('SBGN class') in ('perturbing agent', 'perturbation'):  # yEd's own glyph for it (2026-11-14; AF's perturbation 2026-11-15)
             realizer(n).set('configuration', 'com.yworks.sbgn.PerturbingAgent')
         parent.append(n)
         for k, name in enumerate(names):
@@ -297,10 +297,15 @@ def write(diagram, soft=False):
             l.set('x', repr(float(lx))); l.set('y', repr(float(ly)))
             if d.label_at:  # yEd and yrender place an internal label by its side and one distance from the border:
                 # the side by the third its middle stands in, the distance its own from the top (2026-11-14; its exact
-                # left or right edge is approximate, the label's width being our estimate); centred when it does not fit
-                lw, bd = float(l.get('width')), max(0.0, float(ly))
+                # left or right edge is approximate, the label's width being our estimate); centred when it does not fit.
+                # A name whose middle lies in the lower half sits at the bottom, its distance from the bottom (2026-11-16:
+                # six places for a compartment's name, top or bottom, left, middle or right)
+                lw, lh = float(l.get('width')), float(l.get('height'))
+                low = float(ly) + lh / 2 > h / 2
+                bd = max(0.0, h - float(ly) - lh if low else float(ly))
                 mid = (lx + lw / 2) / w
-                l.set('modelPosition', 't' if lw + 2 * bd > w else 'tl' if mid < 1 / 3 else 'tr' if mid > 2 / 3 else 't')
+                v = 'b' if low else 't'
+                l.set('modelPosition', v if lw + 2 * bd > w else v + 'l' if mid < 1 / 3 else v + 'r' if mid > 2 / 3 else v)
                 l.set('borderDistance', repr(bd))
         for c in n.findall('g:data/y:ProxyAutoBoundsNode/y:Realizers/*', NS)[1:]:  # folded in yEd: its own name, not the template's
             c.find('y:NodeLabel', NS).text = l.text

@@ -329,4 +329,29 @@ needs the colour and width to travel. **Decision** (user, 2026-11-14): the reade
 Newt draws them: 36 reference GraphML files remade, CellDesigner and SBGN-ML outputs the same (CellDesigner keeps no
 outline colour of a species).
 
+## D28. An Activity Flow activity keeps its class and unit in GraphML
+
+**2026-11-15, accepted, built.** **Context**: the SBGN-ML reader draws a biological activity as its entity (no unit of
+information a protein, else the entity its unit names), so the GraphML lost that it was an activity and whether it had
+a unit; the viewer's editor, which edits SBGN-ML maps as the converter's GraphML, could not save an Activity Flow map
+as Activity Flow (user, 2026-11-15: "saved as clean SBGN Activity Flow"; "if there is no auxiliary unit, it's a protein
+activity", a protein may also carry one). **Decision**: the reader keeps the node properties "SBGN class" (biological
+activity) and "SBGN unit" (the unit's entity, absent for none), as "SBGN class" is kept for the glyphs drawn as another
+(association, dissociation, perturbing agent). The drawing is unchanged; the SBGN-ML writer still writes Process
+Description, the activity as its entity. **Consequences**: 13 reference GraphML files remade (the Newt and SBGN-ML
+inputs with activities), every other output the same; the viewer's `sbgn_edit.js` reads and writes the same two
+properties.
+
+## D29. A compartment's name at the top or the bottom
+
+**2026-11-16, accepted, built.** **Context**: a compartment's name in GraphML took one of three places, top left, top
+middle or top right, its distance from the top that of the source; a name low in its compartment (CellDesigner puts
+names near the bottom right) kept a large distance from the top and, being "too far in" to sit at a side, was centred.
+The viewer's editor offers six places for a compartment's name (user, 2026-11-16: "it shouldn't be in the middle ...
+top right, top left, top middle, bottom right, bottom left, bottom middle ... let's stick with 6 positions").
+**Decision**: a name whose middle lies in the lower half of its compartment sits at the bottom (yEd's internal b, bl,
+br), its distance from the bottom; left, middle or right by the third its middle stands in, as before. **Consequences**:
+8 reference GraphML files remade (CellDesigner and SBGN-ML inputs with names low in a compartment): every name at the
+same height as before, those that had been centred only for their distance now at the side the source has them.
+
 {% endraw %}

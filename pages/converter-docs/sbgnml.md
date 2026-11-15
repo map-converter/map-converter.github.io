@@ -131,6 +131,10 @@ then write it. Examples: our own SBGN-ML of every test map, and files saved by N
   agent as yEd's PerturbingAgent, the viewer's renderer draws the association's filled circle and the dissociation's
   circle in a circle from the property, and SBGN-ML is written with the class again (arcs leaving a perturbing agent
   kept). CellDesigner as before (the generic process, a phenotype).
+- A biological activity (Activity Flow) is drawn as its entity, as before, and keeps the node properties "SBGN class"
+  (biological activity) and "SBGN unit" (its unit of information's entity, none for a protein's activity), so an
+  editor that edits the GraphML can write it back as an activity with its unit (2026-11-15). SBGN-ML written from
+  GraphML is Process Description, the activity as its entity.
 - An equivalence arc between two drawn glyphs (an entity and a submap, read as a phenotype) is a plain line (2026-11-14).
 - Left out and printed: what our maps do not draw (tag and equivalence arc to it, annotation
   glyphs, clone markers), and arcs of other classes. Association and dissociation are read as the

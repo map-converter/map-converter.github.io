@@ -10,6 +10,19 @@ noindex: true
 What changed for people who use the converter, newest first, by the date it went to the Converter page.
 Changes inside the code that leave every file the same are listed only when they change the design.
 
+## 2026-11-16
+
+- GraphML written: a compartment's name low in its compartment is placed at the bottom (left, middle or right) and no
+  longer centred because of its distance from the top; its height unchanged (D29).
+
+## 2026-11-15
+
+- SBGN-ML read (Activity Flow): a biological activity's GraphML node keeps its class and its unit of information's entity
+  as the node properties "SBGN class" and "SBGN unit", so the viewer's editor saves an Activity Flow map as Activity
+  Flow; the drawing is unchanged.
+- SBGN-ML read (Activity Flow): a perturbation is drawn, as yEd's perturbing agent, and keeps its class back to SBGN-ML;
+  it was left out before.
+
 ## 2026-11-14
 
 - GraphML: an unspecified entity's name at 14 as every other glyph's (its template had 12, in a box sized for 14).
