@@ -352,6 +352,6 @@ top right, top left, top middle, bottom right, bottom left, bottom middle ... le
 **Decision**: a name whose middle lies in the lower half of its compartment sits at the bottom (yEd's internal b, bl,
 br), its distance from the bottom; left, middle or right by the third its middle stands in, as before. **Consequences**:
 8 reference GraphML files remade (CellDesigner and SBGN-ML inputs with names low in a compartment): every name at the
-same height as before, those that had been centred only for their distance now at the side the source has them.
+same height as before, those that had been centred only for their distance now at the side the source has them. A name whose box hangs below its compartment's bottom edge is now drawn inside it at the bottom (distance 0); before, it kept its own distance from the top.
 
 {% endraw %}
