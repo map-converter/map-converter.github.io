@@ -115,7 +115,8 @@ then write it. Examples: the converter's own SBGN-ML of every test map, and file
 - State variables: value and variable back to `P@S455`, placed by the centre of their bbox.
 - Colours from the render extension (a colour id or the value itself; MINERVA writes the value), every glyph's
   outline colour and width from its `stroke` and `stroke-width` (black is the default and not kept); font sizes
-  from it too, names and state variables and units.
+  from it too, names and state variables and units. An arc's colour from the `stroke` of a style naming it (black
+  not kept), drawn in GraphML and written back to SBGN-ML as a style naming the arc.
 - Annotation: `bqbiol:is` (one entity) and `bqbiol:hasVersion` (a family) from identifiers.org
   links (db:id, the older db/id) or MIRIAM URNs, into the node properties `annotation.py` reads.
 - Arcs: ports back to their glyph, bends from `next` points; an end where the file puts it (a yEd port), unless it
