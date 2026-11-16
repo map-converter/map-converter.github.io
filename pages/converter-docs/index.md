@@ -30,14 +30,8 @@ arc straight from centre to centre, is a fallback for laying out by hand.
 - **Reference**: what each input gives ([Inputs and outputs](/converter/description/)), what the
   [messages](/converter/docs/messages/) under a map mean, and the conventions of each format, as
   learnt from files saved by the programs themselves.
-- **Explanation**: how the converter is built ([Architecture](/converter/architecture/)) and the
-  [design principles](/converter/docs/design/) it follows, each with the reason it was chosen.
-- **Development**: the [issues](/converter/docs/issues/), everything unresolved with how long it
-  has been open, the [open questions](/converter/docs/decisions/), what is
-  [planned](/converter/docs/planned/), how conversion [quality](/converter/docs/quality/) is
-  measured, and the [changes](/converter/docs/changes/) by date.
+- **Explanation**: how the converter is built ([Architecture](/converter/architecture/)).
 
-The pages under Reference and Development are working records, kept as the converter is developed:
-each rule names the file or the date it comes from.
+The pages under Reference say each convention as the programs' own saved files show it.
 
 {% endraw %}

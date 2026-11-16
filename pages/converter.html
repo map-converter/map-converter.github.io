@@ -7,7 +7,7 @@ noindex: true
 ---
 
 <style>
-  .cv-top { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; margin: 24px 0 16px; }  /* both columns from the top (user, 2026-10-25) */
+  .cv-top { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; margin: 24px 0 16px; }  /* both columns from the top */
   @media (max-width: 600px) { .cv-top { grid-template-columns: 1fr; } }
   .cv-top p { margin: 0 0 6px; font-size: 15px; }
   #cv-drop { aspect-ratio: 24 / 13; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
@@ -18,8 +18,8 @@ noindex: true
   #cv-status { font-size: 14px; color: #666; min-height: 20px; }
   /* on the left the map's name and under it the notes, on the right the buttons, from the middle of
      the page like the text next to the drop area; four columns or more reach further left and the
-     left side narrows (user, 2026-10-20); the straight
-     files white, as the fallback (user, 2026-10-19) */
+     left side narrows. The straight
+     files white, as the fallback */
   .cv-map { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 24px; border-top: 1px solid #eee; padding: 8px 0; }
   .cv-left { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
   .cv-buttons { flex: 0 0 auto; min-width: calc(50% - 12px); display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 8px; }
@@ -30,12 +30,12 @@ noindex: true
     .cv-buttons { min-width: 0; order: 1; }
     .cv-log { order: 2; }
   }
-  /* the name level with the top of the buttons, the notes right under it (user, 2026-10-20) */
+  /* the name level with the top of the buttons, the notes right under it */
   .cv-name { font-size: 14px; line-height: 20px; font-weight: 600; overflow-wrap: anywhere; }
   /* one column per format, the blue button on top and its straight line file under it, the same
-     for Newt; other variants below (user, 2026-10-20) */
+     for Newt. Other variants below */
   .cv-col { display: flex; flex-direction: column; gap: 6px; }
-  /* a larger gap before the Open in Newt buttons, so the downloads and the opening read as two groups (user, 2026-10-21) */
+  /* a larger gap before the Open in Newt buttons, so the downloads and the opening read as two groups */
   .cv-col .cv-open-first { margin-top: 8px; }
 {% include converter-buttons.css %}
   .cv-log { font-size: 12px; color: #666; white-space: pre-wrap; }
@@ -43,37 +43,33 @@ noindex: true
   .cv-from { font-weight: 600; }
   /* links in the Atlas's link blue (MINERVA's), darker than the site's #4183c4, the same on hover */
   .cv-top a, .cv-top a:hover, .cv-top a:active { color: #1c47a9; }
-  /* the text next to the drop area in the page's regular size, in grey (user, 2026-10-20) */
+  /* the text next to the drop area in the page's regular size, in grey */
   .cv-top p.cv-hint, .cv-hint { color: #777; }
-  /* the routes, one line each, with the font's arrow, so they can be copied (user, 2026-10-17), each a tick box:
-     only the ticked routes are converted, all three ticked at first (user, 2026-10-25) */
+  /* the routes, one line each, with the font's arrow, so they can be copied, each a tick box:
+     only the ticked routes are converted, all three ticked at first */
   /* the box scaled with the text */
   label.cv-hint input { width: 15px; height: 15px; vertical-align: -2px; margin: 0 5px 0 0; }
-  /* ticked boxes grey as Chrome draws them in a private window, in every browser (user, 2026-10-25: the browser's
-     own colour otherwise, blue or its theme's) */
+  /* ticked boxes grey as Chrome draws them in a private window, in every browser (otherwise the browser's
+     own colour, blue or its theme's) */
   label.cv-hint input { accent-color: #626262; }
   .cv-top p.cv-routes { margin-bottom: 12px; }
-  /* the CellDesigner fallbacks, made only when ticked (user, 2026-10-24: tick boxes, not a drop-down) */
-  /* the three in one line (user, 2026-10-24), each kept whole when the line wraps */
+  /* the CellDesigner fallbacks, made only when ticked (tick boxes, not a drop-down) */
+  /* the three in one line, each kept whole when the line wraps */
   .cv-top p.cv-modes { margin: 0 0 12px; line-height: 1.7; }
   /* the choices together on the right, each group named: Convert, Additional CellDesigner layouts, Options, then
-     the links; the note on the buttons at the end of the right column (user, 2026-11-03; under the drop area from 2026-10-25, variant 1 of the former test page
-     /converter/options/ with the note as in variant 4, in git history) */
+     the note on the buttons at the end of the right column */
   .cv-top p.cv-group { margin: 0 0 2px; }
   .cv-top p.cv-std { margin: 0 0 12px; }
   .cv-top p.cv-text { margin: 12px 0 0; }
   /* ⓘ after a group name: a click or tap opens its text in a grey box under it, a second click or a click
-     elsewhere closes it (user, 2026-10-25, variant 2 of the former test page /converter/info/, in git history;
-     in place of the hover texts on the boxes, which a phone cannot show; 16 px, user 2026-10-25) */
+     elsewhere closes it, in place of hover texts on the boxes, which a phone cannot show. 16 px */
   button.cv-i { border: 0; background: none; padding: 0; margin: 0 0 0 4px; color: #777; cursor: pointer; vertical-align: -2px; line-height: 0; }
-  /* on hover and while open the colours reversed: a filled grey circle, the i white (user, 2026-10-25; it turned blue) */
+  /* on hover and while open the colours reversed: a filled grey circle, the i white (otherwise it turns blue) */
   button.cv-i:hover circle, button.cv-i[aria-expanded="true"] circle { fill: currentColor; }
   button.cv-i:hover path, button.cv-i[aria-expanded="true"] path { stroke: #fff; }
   .cv-info { display: block; font-size: 13px; line-height: 1.5; color: #555; background: #f6f6f6; border-radius: 4px; padding: 6px 8px; margin: 4px 0 6px; }
   .cv-info[hidden] { display: none; }
   .cv-modes label { white-space: nowrap; margin-right: 14px; }
-  /* the subpages, each with an arrow down and right before it, grey, blue on hover (user, 2026-10-20,
-     variant 4 of the former test page /converter/links/, in git history), last on the right (user, 2026-10-25) */
 </style>
 
 <div class="cv-top">
@@ -112,8 +108,8 @@ noindex: true
   // the converter's own code (mapconv): which files each input gives and how each is made is the
   // converter's (mapconv/routes.py, the same as on the command line). A GraphML map is first checked
   // (mapconv.rules): the problem elements are left out of the converted files, and the map comes back
-  // with them marked red, "GraphML (marked)", its problems listed under the map in red as text to copy
-  // (user, 2026-10-17). Each file: [name ending, button label, text, log, red]; the converter's
+  // with them marked red, "GraphML (marked)", its problems listed under the map in red as text to copy.
+  // Each file: [name ending, button label, text, log, red]; the converter's
   // messages are kept for the page, its summary ("46 species, ...") left out
   const DRIVER = `
 import os, sys
@@ -123,7 +119,7 @@ import cdrender
 
 def preview(ending, text):
     # a CellDesigner file drawn as CellDesigner draws it (converter/cdrender.py, the CD viewer's), the page
-    # its button opens in a new tab (user, 2026-10-24); none when it cannot be drawn
+    # its button opens in a new tab, none when it cannot be drawn
     if not ending.endswith('.xml') or text is None:
         return None
     with open('/tmp/preview.xml', 'w', encoding='utf-8') as f:
@@ -154,9 +150,9 @@ def convert(name, data, standard=False, skipped=()):
         else:
             log = ''.join(m + '\\n' for k, m in said if k != 'summary')
         # the layout that keeps the drawing is the plain file, "CellDesigner", <map>.xml; straight the
-        # variant, "straight" on its button (user, 2026-10-19; "straight line" from 2026-10-20 to 2026-10-25; the converter's own names
+        # variant, "straight" on its button (the converter's own names
         # stay). SBGN-ML: "newt-adjusted" (blue, <map>-newt.sbgn) and "plain" (<map>.sbgn), each also with "straight"
-        # on a third line of the button (user, 2026-10-21; "straight line" until 2026-10-25)
+        # on a third line of the button
         label = {'SBGN-ML (advanced, for Newt)': 'SBGN-ML (newt-adjusted)', 'SBGN-ML (straight, for Newt)': 'SBGN-ML (newt-adjusted, straight)',
                  'SBGN-ML (advanced)': 'SBGN-ML (plain)', 'SBGN-ML (straight)': 'SBGN-ML (plain, straight)'}.get(o.label) or \
                 o.label.replace(' (advanced)', '')
@@ -167,7 +163,7 @@ def convert(name, data, standard=False, skipped=()):
   const dropText = document.getElementById('cv-drop-text');
   const status = document.getElementById('cv-status'), out = document.getElementById('cv-out');
   let py = null;
-  const waiting = [];  // files dropped or chosen while the converter loads, converted once it is there (user, 2026-10-21)
+  const waiting = [];  // files dropped or chosen while the converter loads, converted once it is there
 
   async function load() {
     const p = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/' });
@@ -197,7 +193,7 @@ def convert(name, data, standard=False, skipped=()):
   }
 
   // a CellDesigner file with a preview: a click saves the file, a new tab (right click, middle click,
-  // Ctrl or Cmd click) shows the drawing (user, 2026-10-24)
+  // Ctrl or Cmd click) shows the drawing
   function button(text, name, label, red, input, preview) {
     const a = document.createElement('a'), file = URL.createObjectURL(new Blob([text], { type: 'application/xml' }));
     a.className = red ? 'cv-btn cv-bad' : 'cv-btn';
@@ -220,10 +216,10 @@ def convert(name, data, standard=False, skipped=()):
 {% include newt-open.js %}
 
   // a column's buttons: the blue one on top (no variant, or SBGN-ML newt-adjusted), its straight line file
-  // under it, the others below (user, 2026-10-20); SBGN-ML plain in a column of its own, right of
-  // SBGN-ML newt-adjusted (user, 2026-10-21: four in a column are too many); the Open in Newt buttons at the
-  // end of their SBGN-ML files' column (user, 2026-10-21)
-  // CellDesigner: the blue one, then straight, straight & bends, as drawn (user, 2026-10-24)
+  // under it, the others below. SBGN-ML plain in a column of its own, right of
+  // SBGN-ML newt-adjusted (four in a column are too many). The Open in Newt buttons at the
+  // end of their SBGN-ML files' column
+  // CellDesigner: the blue one, then straight, straight & bends, as drawn
   const rank = variant => !variant || variant === 'newt-adjusted' || variant === 'plain' ? 0 : /straight$/.test(variant) ? 1 : variant === 'straight & bends' ? 2 : 3;
   const column = (format, variant) => (format === 'Open in Newt' ? 'SBGN-ML' : format) + (/^plain/.test(variant || '') ? ' plain' : '');
   const variantOf = b => [...b.querySelectorAll('.cv-variant')].map(v => v.textContent).join(', ');
@@ -248,7 +244,7 @@ def convert(name, data, standard=False, skipped=()):
     box.append(all);
   }
 
-  // the routes (user, 2026-10-25): a file is made when its format is the input's, or a ticked route joins
+  // the routes: a file is made when its format is the input's, or a ticked route joins
   // the two; a CellDesigner layout also when its box is ticked
   const routeBoxes = [...document.querySelectorAll('.cv-routes input')];
   const joined = (a, b) => routeBoxes.some(i => i.checked && i.value.split(' ').includes(a) && i.value.split(' ').includes(b));
@@ -258,9 +254,9 @@ def convert(name, data, standard=False, skipped=()):
     return (!to || to === src || joined(src, to)) && (!mode || mode.checked);
   }
 
-  // old: a map already on the page, replaced in place when a tick box changes (user, 2026-10-24). Its
+  // old: a map already on the page, replaced in place when a tick box changes. Its
   // files are kept (box.made, by ending): a change makes only the files it does not have yet, an unticked
-  // route or layout only hides its buttons (user, 2026-10-25)
+  // route or layout only hides its buttons
   async function convert(files, old) {
     if (!py) {
       waiting.push(...files);
@@ -288,7 +284,7 @@ def convert(name, data, standard=False, skipped=()):
         }
       }
       const r = [...made.values()].filter(x => wanted(x[0], src)).sort((a, b) => a[6] - b[6]);
-      // each format's buttons together, in their columns, ranked (the blue one first; user, 2026-10-20)
+      // each format's buttons together, in their columns, ranked (the blue one first)
       const format = label => label.split(' (')[0], order = [...new Set(r.map(x => format(x[1])))];
       const variant = label => (label.match(/\((.*)\)$/) || [])[1];
       const plain = label => /^plain/.test(variant(label) || '');
@@ -296,19 +292,19 @@ def convert(name, data, standard=False, skipped=()):
       const box = document.createElement('div'); box.className = 'cv-map';
       box.insertAdjacentHTML('beforeend', '<div class="cv-left"><div class="cv-name"></div></div>');
       box.file = f; box.made = made; box.all = all;
-      box.querySelector('.cv-name').textContent = f.name;  // the dropped file's name with its extension (user, 2026-10-20)
-      if (!routed.some(i => i.checked)) {  // no ticked route takes this file: which would, in red (user, 2026-10-25)
+      box.querySelector('.cv-name').textContent = f.name;  // the dropped file's name with its extension
+      if (!routed.some(i => i.checked)) {  // no ticked route takes this file: which would, in red
         const d = document.createElement('div'); d.className = 'cv-log cv-error';
         d.textContent = 'Tick ' + routed.map(i => i.parentNode.textContent.trim()).join(' or ') + ' to convert this file.';
         box.querySelector('.cv-left').append(d);
       }
-      // the converter's messages, each once, under the files it comes from (user, 2026-10-20)
+      // the converter's messages, each once, under the files it comes from
       const notes = new Map(), errors = new Map();
       const problems = [];
       // Newt: each SBGN-ML file, or an SBGN-ML or Newt input itself
       const newt = /\.(sbgn|nwt)$/i.test(f.name) ? [{ text: await f.text(), name: f.name }] : [];
       for (const [end, label, xml, log, red, preview] of r) {
-        // every SBGN-ML file, the plain ones too, to see what Newt makes of them (user, 2026-10-21)
+        // every SBGN-ML file, the plain ones too, to see what Newt makes of them
         if (xml && end.endsWith('.sbgn')) newt.push({ text: xml, name: base + end,
           variant: [end.endsWith('-newt.sbgn') ? '' : 'plain', end.startsWith('-straight') ? 'straight' : ''].filter(Boolean).join(', ') || undefined });
         if (xml) {
@@ -365,7 +361,7 @@ def convert(name, data, standard=False, skipped=()):
   });
   drop.addEventListener('click', () => input.click());
   drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
-  // the tick boxes as last left in this browser (user, 2026-10-25); the defaults when it keeps nothing
+  // the tick boxes as last left in this browser, the defaults when it keeps nothing
   const ticks = [...document.querySelectorAll('.cv-top input[type=checkbox]')], key = b => b.id || b.value;
   try {
     const saved = JSON.parse(localStorage.getItem('converter-ticks') || '{}');

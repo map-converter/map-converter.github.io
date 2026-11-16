@@ -13,8 +13,7 @@ member's record. The map's GraphML carries only the identifiers, as yEd custom
 node properties (Properties > Data in yEd), and the converter writes them into
 the CellDesigner file (MIRIAM). Names, function, location, formula and
 cross-references are fetched from the identifiers by the website
-(`scripts/make_maps.py`, kept in its `atlas-data/`; user, 2026-10-18). The scripts are in the converter's repository (since
-2026-10-16); the label tables and record caches stay with each map in the
+(`scripts/make_maps.py`, kept in its `atlas-data/`). The scripts are in the converter's repository; the label tables and record caches stay with each map in the
 working repository of the maps (`<map>/annotation/`). Everything below can be rerun at any
 time: records are fetched once into the map's annotation folder and reused.
 From a repository that holds the converter as a submodule, its folder goes on the
