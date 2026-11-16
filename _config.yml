@@ -53,13 +53,13 @@ baseurl: ""
 #
 
 defaults:
-  # our copy of Newt, opened from the Converter page (static files, noindex in its index.html)
+  # the site's copy of Newt, opened from the Converter page (static files, noindex in its index.html)
   - scope:
       path: newt
     values:
       sitemap: false
-  # the Converter's pages and its documentation: their tab icon, two curved arrows with true heads (user, 2026-11-03),
-  # and their own menu (_data/mastheads.yml, user 2026-11-02)
+  # the Converter's pages and its documentation: their tab icon, two curved arrows with true heads,
+  # and their own menu (_data/mastheads.yml)
   - scope:
       path: "pages/converter*"
     values:
@@ -85,7 +85,7 @@ kramdown:
     # Use existing pygments syntax highlighting css
     css_class: 'highlight'
 
-# Set the Sass partials directory, as we're using @imports
+# Set the Sass partials directory, as the styles use @imports
 sass:
   style: :expanded # You might prefer to minify using :compressed
 

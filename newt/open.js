@@ -1,8 +1,8 @@
-// Added to our copy of Newt by tools/newt_build.sh (open.js, after Newt's bundle.js): a Newt button of
-// the website's Converter page links /newt/?f=<key>#<file name>; Newt opened there asks that
+// Added to the site's copy of Newt by tools/newt_build.sh (open.js, after Newt's bundle.js): a Newt button of
+// the website's Converter page links /newt/?f=<key>#<file name>. Newt opened there asks that
 // page for the file over a BroadcastChannel (inside the browser) and loads it through its own file
-// input, as if dropped. A link, so a click, a middle click and "Open link in new tab" all work (user,
-// 2026-10-21). The cookie skips Newt's welcome tour.
+// input, as if dropped. A link, so a click, a middle click and "Open link in new tab" all work.
+// The cookie skips Newt's welcome tour.
 (function () {
   var key = new URLSearchParams(location.search).get('f');
   if (!key) return;

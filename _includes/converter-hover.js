@@ -1,4 +1,4 @@
-  // the buttons' hover texts (user, 2026-10-21), on /converter/: a button with
+  // the buttons' hover texts, on /converter/: a button with
   // only its main word says what its file holds, a button with more words says what each adds, one
   // line per word ("plain: ..."), then the file's name
   const HOVER_MAIN = {

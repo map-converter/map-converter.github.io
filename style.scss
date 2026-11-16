@@ -274,7 +274,7 @@ nav {
   }
 }
 
-// Drop-down menus of the sub-site headers (_data/mastheads.yml, an entry with items; user 2026-11-01)
+// Drop-down menus of the sub-site headers (_data/mastheads.yml, an entry with items)
 nav .navdd {
   display: inline-block;
   position: relative;
@@ -349,8 +349,7 @@ nav.plain a.active, nav.plain .navdd.active summary { font-weight: 300; } // as 
   }
 }
 
-// white, a thin line above, the round icons (user, 2026-10-17, variant 2 of /atlas/footers/;
-// before: a grey band with lines above and below)
+// white, a thin line above, the round icons
 .wrapper-footer {
   margin-top: 50px;
   border-top: 1px solid #eee;
@@ -383,7 +382,7 @@ div.img img{
 }
 
 // References of a map page (and of its text in the Atlas): numbered list,
-// left-aligned, at the main text size (user, 2026-10-15)
+// left-aligned, at the main text size
 #references + ol {
   font-size: 16px;
   line-height: 1.4;

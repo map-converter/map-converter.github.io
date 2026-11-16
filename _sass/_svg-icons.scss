@@ -1,7 +1,7 @@
-// email: a white envelope on a dark circle, as the GitHub icon (the theme's was dark on white,
-// lost on the white footer; user, 2026-10-17)
+// email: a white envelope on a dark circle, as the GitHub icon (a dark icon on white would be
+// lost on the white footer)
 .svg-icon {
-  width: 36px;  // 40 in the theme (user, 2026-10-17)
+  width: 36px;  // 40 in the theme
   height: 36px;
   background-size: 36px 36px;  // the 40 px drawing scaled, not cropped
   display: inline-block;

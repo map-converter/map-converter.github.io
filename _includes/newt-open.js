@@ -1,10 +1,10 @@
-  // Newt buttons, on /converter/: an SBGN-ML file opened in our copy of Newt
-  // (/newt/, iVis-at-Bilkent/newt built as is with one script of ours, open.js), as if dropped on it.
-  // Newt opens a map only from a web address, which these files lack (user, 2026-10-20). Each button is a
-  // link to /newt/?f=<key>#<file name>, so a click, a middle click and "Open link in new tab" all work
-  // (user, 2026-10-21): Newt's open.js asks this page for the file <key> over a BroadcastChannel, inside
+  // Newt buttons, on /converter/: an SBGN-ML file opened in the site's copy of Newt
+  // (/newt/, iVis-at-Bilkent/newt built as is with one added script, open.js), as if dropped on it.
+  // Newt opens a map only from a web address, which these files lack. Each button is a
+  // link to /newt/?f=<key>#<file name>, so a click, a middle click and "Open link in new tab" all work:
+  // Newt's open.js asks this page for the file <key> over a BroadcastChannel, inside
   // the browser, and this page answers while it is open. The file's name is in the address (after #,
-  // which Newt does not read) and the tab title, so a map can be named in feedback (user, 2026-10-20).
+  // which Newt does not read) and the tab title, so a map can be named in feedback.
   const NEWT = '{{ "/newt/" | relative_url }}';
   const RUN = Math.random().toString(36).slice(2, 8);  // this page load's files, apart from another tab's
   const NEWT_FILES = new Map();
@@ -17,9 +17,8 @@
                     'stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>' +
                     '<polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
 
-  // a button in the Converter's two lines: "Open in Newt" (user, 2026-10-21; it was "Newt"), and under
-  // it the variant, small; white with the blue edge (user, 2026-10-21; it was grey; Newt's orange tried and dropped), the external-link
-  // icon after it (the buttons made wider for it)
+  // a button in the Converter's two lines: "Open in Newt", and under it the variant, small.
+  // White with the blue edge, the external-link icon after it (the buttons are wide enough for it)
   function newtButton(text, name, variant) {
     const a = document.createElement('a');
     const key = RUN + '-' + (NEWT_FILES.size + 1);
