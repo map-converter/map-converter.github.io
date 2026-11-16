@@ -1,13 +1,13 @@
-# The tidy moves (user, 2026-10-19): nodes moved a few px so that CellDesigner's lines come out
+# The tidy moves: nodes moved a few px so that CellDesigner's lines come out
 # straight, on the drawing of the CellDesigner adapter (cd_layout.draw) before anything is written.
-# An add-on, not part of the adapter: celldesigner.write runs it with tidy (the advanced file; user,
-# 2026-10-24: close to what the user does by hand, good for the Metabolism Regulation maps), on the
+# An add-on, not part of the adapter: celldesigner.write runs it with tidy (the advanced file;
+# close to what is done by hand, good for the Metabolism Regulation maps), on the
 # adapter's drawing made with tidy (process glyph placed only for a modifier straight across). Every
 # move is in the messages; a node moves only if it stays in its compartment and overlaps nothing.
 from . import layout, report
 from .cd_layout import descendants
 
-# Main lines only slightly off the vertical or horizontal (user's glycolysis edit, 2026-10-13: the
+# Main lines only slightly off the vertical or horizontal (a hand edit of glycolysis: the
 # PKA complexes and PKA cat put on one vertical line by hand). Across all maps the slightly-off
 # main lines are 0-5 px off and the next ones 20+ px (intended diagonals), so TOL = 10 separates them.
 TOL = 10.0
@@ -61,7 +61,7 @@ def tidy(diagram, drawing, ents, members, label):
             q = N[q].parent
         return q
 
-    def said_move(j, dx, dy, why):  # every tidy move in the messages (user, 2026-10-19)
+    def said_move(j, dx, dy, why):  # every tidy move in the messages
         way = ' and '.join('%.0f px %s' % (abs(v), w[v > 0]) for v, w in ((dx, ('left', 'right')), (dy, ('up', 'down'))) if abs(v) >= 0.05)
         if way:
             report.say('changed', '%s moved %s: %s' % (label[j] or j, way, why))
@@ -79,7 +79,7 @@ def tidy(diagram, drawing, ents, members, label):
     def shift(m, ax, d, ends, why):
         # move entity m by d along axis ax, with the entities joined to it by main lines straight
         # on that axis (and their complex members), if all stay in their compartments and overlap
-        # nothing (user's pyrimidine v08 edit: ERK1/2 and its phosphorylation moved together)
+        # nothing (a hand edit of pyrimidine: ERK1/2 and its phosphorylation moved together)
         group = [m]
         for j in group:
             group += [b if a == j else a for a, b in ends if j in (a, b) and abs(cen(a)[ax] - cen(b)[ax]) < 1
@@ -101,7 +101,7 @@ def tidy(diagram, drawing, ents, members, label):
 
     # a main line yEd draws level into a larger node off its centre (an end point beside the
     # centre): CellDesigner aims at the centre, so the other end moves onto its centre line
-    # (user's iNOS v07 and v08 edits: CaM moved 25 px for CaM -> CaM:iNOS)
+    # (hand edits of iNOS: CaM moved 25 px for CaM -> CaM:iNOS)
     fls = {p: fl for p, fl in drawing.lines().items() if fl}
     ends = [(fl[0][0].source, fl[1][0].target) for fl in fls.values()]
     for p, (ins, outs, mods, gates, reversible, c) in fls.items():
@@ -117,7 +117,7 @@ def tidy(diagram, drawing, ents, members, label):
                     shift(q_, ax, cen(r_)[ax] - cen(q_)[ax], ends, 'onto the centre line of %s' % (label[r_] or r_))
 
     # modifiers onto their (midway) square: a small move so the arc meets the square straight
-    # (the user's edits of the full set: 23 such moves). Only a move of at most ALIGN px along
+    # (hand edits of the full set: 23 such moves). Only a move of at most ALIGN px along
     # one axis, the same for every reaction the modifier acts on (shift above)
     geo = {p: drawing.geometry(p, fl, False) for p, fl in fls.items()}
     want = {}

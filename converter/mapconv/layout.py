@@ -1,4 +1,4 @@
-# Layout passes on a map's drawing, shared by the writers (restructuring step 4, 2026-10-19).
+# Layout passes on a map's drawing, shared by the writers.
 # Each works on the boxes it is given (id -> (x, y, w, h)), so a writer can run it on the boxes
 # its target needs.
 import math, re
@@ -29,7 +29,7 @@ def decorations(d):
     cx, cy = x + w / 2, y + h / 2
     states = []
     for txt, rx, ry in d.states:
-        sw = 15.0 if len(txt) <= 2 else 45.0  # as yEd's icons on our maps
+        sw = 15.0 if len(txt) <= 2 else 45.0  # as yEd's icons on the atlas maps
         states.append((cx + rx * w - sw / 2, cy + ry * h - 7.5, sw, 15.0))
     units = d.units + (['N:%d' % d.count] if d.count > 2 and not any(re.fullmatch(r'N:\d+', u) for u in d.units) else [])
     uw = [max(3, len(u)) * 7.0 for u in units]  # at least N:2's width, as graphml.write
@@ -76,7 +76,7 @@ def main_lines(diagram, box, ents, origin=(0, 0)):
             return None
         # the main direction: the reactant and product that face each other through the
         # process, centre to centre; the others are extra links (CellDesigner: first one
-        # source and one target, then more substrates and products; user, eNOS 2026-10-13)
+        # source and one target, then more substrates and products; eNOS)
         def through(a, b):
             (ax, ay), (bx, by) = cen(a), cen(b)
             L2 = (bx - ax) ** 2 + (by - ay) ** 2 or 1
@@ -84,10 +84,10 @@ def main_lines(diagram, box, ents, origin=(0, 0)):
             d = abs((bx - ax) * (c[1] - ay) - (by - ay) * (c[0] - ax)) / math.sqrt(L2)
             return d + (0 if 0 < t_ < 1 else 1e6)  # the process between them
         # small molecules are side substrates: a main line between larger species first
-        # (complex to complex; user, eNOS BH4/BH2 exchange 2026-10-13)
+        # (complex to complex; eNOS BH4/BH2 exchange)
         small = lambda i: 1 if N[i].kind in ('SimpleChemical', 'EmptySet') else 0
         # then a pair drawn straight through the process (3 px), then a pair on a cycle: the product
-        # leads back to the reactant through other processes (user's iNOS v07: arginine,
+        # leads back to the reactant through other processes (iNOS: arginine,
         # citrulline, argininosuccinate, not O2, NO, fumarate, aspartate)
         def cycle(a, b):
             seen, todo = {b}, [b]
@@ -116,7 +116,7 @@ def main_lines(diagram, box, ents, origin=(0, 0)):
 
 def twins(diagram, ents):
     # the processes that join the same species as another process, by consumption and production
-    # arcs (phosphorylation and dephosphorylation of HMGCR; user's edit of mevalonate v03): their
+    # arcs (phosphorylation and dephosphorylation of HMGCR; a hand edit of mevalonate): their
     # lines must not fall on one another
     N, E = diagram.nodes, diagram.arcs
     joins = {p: frozenset(e.target if e.source == p else e.source for e in E if p in (e.source, e.target) and e.head not in MODIFIERS
@@ -130,10 +130,10 @@ def route(pts, c, box):
     return [q for q in pts if math.dist(q, c) > max(box[2], box[3]) + 3]
 
 
-# Bends (user, 2026-10-13): lines stay straight except for a long connector that
+# Bends: lines stay straight except for a long connector that
 # yEd draws as one L (one corner), and in the advanced layout the bends that shape a route. From yEd
 # only the way the L turns is taken (horizontal or vertical first); the corner is built from the ends:
-# x of one, y of the other (the user's edits of glycolysis v08 and aspirin v02 match it to the pixel).
+# x of one, y of the other (hand edits of glycolysis and aspirin match it to the pixel).
 EPS = 20.0       # a yEd bend counts if leaving it out moves the line by more than this
 MIN_LEN = 150.0  # only connectors at least this long
 
@@ -196,7 +196,7 @@ fixed = PROCESSES + ('Operator',)
 
 
 def visible(m):
-    # the bends a map read from CellDesigner shows (user, 2026-10-19: CellDesigner files hold many
+    # the bends a map read from CellDesigner shows (CellDesigner files hold many
     # hidden bends). CellDesigner draws its nodes over the arcs, so the bends at the start of an arc
     # inside its source, and at its end inside its target, are not seen: left out, the arc's port
     # where the line leaves or enters the node when the line from the port would differ (a process
@@ -243,11 +243,11 @@ def corner(a, b, way):
     return (b[0], a[1]) if way == 'h' else (a[0], b[1])
 
 
-TOL = 3  # px: bends this close to one line were meant to be on it (user, 2026-10-28)
+TOL = 3  # px: bends this close to one line were meant to be on it
 
 
 def aligned(m, tol=TOL):
-    # a map read from CellDesigner, whose bends are placed by hand (user, 2026-10-28, ExposomeMap-PM: lanes
+    # a map read from CellDesigner, whose bends are placed by hand (ExposomeMap-PM: lanes
     # of arcs 1 to 3 px apart): each bend coordinate within tol of an arc's end goes onto it, its own arc's
     # end first, then bends within tol of each other onto one line (their median); bends left in the middle
     # of a level or upright run are dropped. No node and no arc end moves.
@@ -285,7 +285,7 @@ def aligned(m, tol=TOL):
 
 def at_centres(m):
     # the straight layout of a map read from a file with its own geometry (CellDesigner): every arc
-    # at its nodes' centres, metabolites at our yEd size (a 40 x 40 circle), centre kept
+    # at its nodes' centres, metabolites at the atlas yEd size (a 40 x 40 circle), centre kept
     for d in m.nodes.values():
         if d.kind == 'SimpleChemical':
             W, H = SIZE['SimpleChemical']

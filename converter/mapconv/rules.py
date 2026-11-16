@@ -1,5 +1,5 @@
-# What a yEd map must keep to convert: the SBGN Process Description rules, with one exception
-# (user, 2026-10-16): stimulation, inhibition, modulation and trigger may join two entities (from a
+# What a yEd map must keep to convert: the SBGN Process Description rules, with one exception:
+# stimulation, inhibition, modulation and trigger may join two entities (from a
 # logic gate stimulation and inhibition),
 # CellDesigner's reduced notation in place of an Activity Flow map. yEd draws anything, so a map can look right and
 # be wrong inside: a shape laid on a protein in place of a state variable, a node drawn inside

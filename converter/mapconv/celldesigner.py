@@ -1,7 +1,7 @@
 # Write a CellDesigner 4.0 file (SBML L2V4 with the CellDesigner extension)
 # from a map (model.py) read from a yEd SBGN map; read() at the end goes the other way.
 # Where lines, squares and points go: cd_layout.py (the CellDesigner adapter); this module writes
-# them. Four layouts (user, 2026-10-24): straight, straight & bends, advanced (the tidy moves of
+# them. Four layouts: straight, straight & bends, advanced (the tidy moves of
 # cd_tidy.py) and as drawn; only advanced moves nodes (all keep the room of a complex's name).
 # - Every yEd entity node is a species with one alias at the yEd position
 #   (all coordinates shifted so the map starts at MARGIN).
@@ -21,7 +21,7 @@
 #   products are added links. Where two processes join the same two species
 #   (HMGCR <-> HMGCR-P), each line uses the quarter points on the facing sides.
 # - Bend points only for long connectors that yEd draws as one L (layout.py);
-#   others the user adds by hand. Lines end at node centres.
+#   others are added by hand. Lines end at node centres.
 # - MIRIAM annotation from the map's node properties (annotation.py):
 #   bqbiol:is for one entity, bqbiol:hasVersion for a family.
 # - Metabolites become circles of cd_layout.CHEMICAL diameter on the yEd centre.
@@ -30,7 +30,7 @@
 #   named after its members (A:B).
 # - Multimers: the count in the N:x unit of information becomes homodimer N
 #   (yEd's mcount is only the number of shapes drawn, always 2). Beyond 2 the
-#   SBGN way (user, 2026-10-24): homodimer 2, drawn as a dimer at yEd's size,
+#   SBGN way: homodimer 2, drawn as a dimer at yEd's size,
 #   and the count as the unit N:x (prefix N, as AsthmaMap), so a tetramer does not grow and
 #   push its neighbours (CellDesigner grows the box 6 per unit).
 # - A state variable without a modification state (cAMP) is a bound ligand:
@@ -54,26 +54,26 @@ CD = 'http://www.sbml.org/2001/ns/celldesigner'
 CLASS = {'Macromolecule': 'PROTEIN', 'SimpleChemical': 'SIMPLE_MOLECULE', 'NucleicAcidFeature': 'GENE',
          'UnspecifiedEntity': 'UNKNOWN', 'Complex': 'COMPLEX', 'Phenotype': 'PHENOTYPE',
          'SourceAndSink': 'DEGRADED', 'EmptySet': 'DEGRADED',
-         # CellDesigner has no submap: a phenotype (user's SREBP file, 2026-10-13)
+         # CellDesigner has no submap: a phenotype (the SREBP file)
          'Submap': 'PHENOTYPE'}
 # arc between two entities (no process) -> CellDesigner reduced-notation reaction. A stimulation
-# (user, 2026-10-20): REDUCED_PHYSICAL_STIMULATION, its white arrowhead SBGN's; POSITIVE_INFLUENCE (an
+# as REDUCED_PHYSICAL_STIMULATION, its white arrowhead SBGN's; POSITIVE_INFLUENCE (an
 # open arrow, nothing in SBGN) is read as a stimulation, never written
 REDUCED = {'stimulation': 'REDUCED_PHYSICAL_STIMULATION',
            'inhibition': 'NEGATIVE_INFLUENCE',
            'modulation': 'REDUCED_MODULATION', 'trigger': 'REDUCED_TRIGGER'}  # as the PD map (CellDesigner 4.4, autumn 2025)
 # a logic gate on arcs between entities: a BOOLEAN_LOGIC_GATE reaction, its arc typed as in the PD map
 GATE_ARC = {'stimulation': 'REDUCED_PHYSICAL_STIMULATION', 'inhibition': 'NEGATIVE_INFLUENCE',  # as between entities
-            'trigger': 'REDUCED_TRIGGER', 'modulation': 'REDUCED_MODULATION'}  # the user's file, tests/celldesigner/gate-trigger-modulation.xml
+            'trigger': 'REDUCED_TRIGGER', 'modulation': 'REDUCED_MODULATION'}  # tests/celldesigner/gate-trigger-modulation.xml
 # a dashed arc (unknown) in CellDesigner's unknown types, where it has one (as the PD map)
 UNKNOWN = {'CATALYSIS': 'UNKNOWN_CATALYSIS', 'INHIBITION': 'UNKNOWN_INHIBITION'}
-# reduced notation, between entities and out of a gate: UNKNOWN_ before the type (the user's file
+# reduced notation, between entities and out of a gate: UNKNOWN_ before the type (the file
 # tests/celldesigner/unknown-reduced.xml); a stimulation as REDUCED_PHYSICAL_STIMULATION, the same head
 UNKNOWN.update({t: 'UNKNOWN_' + t for t in ('NEGATIVE_INFLUENCE', 'REDUCED_PHYSICAL_STIMULATION',
                                              'REDUCED_MODULATION', 'REDUCED_TRIGGER')})
 REACTION = {'Process': 'STATE_TRANSITION', 'OmittedProcess': 'KNOWN_TRANSITION_OMITTED', 'UncertainProcess': 'UNKNOWN_TRANSITION'}
 GATE = {'AND': 'BOOLEAN_LOGIC_GATE_AND', 'OR': 'BOOLEAN_LOGIC_GATE_OR', 'NOT': 'BOOLEAN_LOGIC_GATE_NOT',
-        '?': 'BOOLEAN_LOGIC_GATE_UNKNOWN'}  # CellDesigner's unknown gate, a ? in yEd (user, 2026-10-25; no SBGN glyph)
+        '?': 'BOOLEAN_LOGIC_GATE_UNKNOWN'}  # CellDesigner's unknown gate, a ? in yEd (no SBGN glyph)
 GATE_LABEL = {v: k for k, v in GATE.items()}
 # glyph at the end of an arc into a process -> CellDesigner modification type
 MOD = {'catalysis': 'CATALYSIS', 'inhibition': 'INHIBITION', 'modulation': 'MODULATION',
@@ -113,7 +113,7 @@ def units_of_information(d):
 def cd_info(u):
     # a unit of information as CellDesigner's info (prefix, label): ct:gene as prefix ct, a multimer's
     # N:4 as prefix N (AsthmaMap's files: homodimer 2 with N:4), any other text as "free input", as
-    # CellDesigner saves a free-text unit (user's example, 2026-10-22)
+    # CellDesigner saves a free-text unit
     return ('ct', u[3:]) if u.startswith('ct:') else ('N', u[2:]) if re.fullmatch(r'N:\d+', u) else ('free input', u)
 
 
@@ -146,7 +146,7 @@ def border_angle(rx, ry):
 def opened_ors(m):
     # an OR gate fed by another gate (Newt's TGF-beta: AND into OR) has no CellDesigner form: each of
     # its inputs points at its target with the type of its arc out, as several arcs onto one target
-    # read as any of them (user, 2026-10-19). A gate into an AND stays left out: no such reading.
+    # read as any of them. A gate into an AND stays left out: no such reading.
     ops = {i for i, d in m.nodes.items() if d.kind == 'Operator'}
     opened, arcs = [], m.arcs
     for o in ops:
@@ -169,7 +169,7 @@ LAYOUTS = ('straight', 'bends', 'advanced', 'drawn')
 
 def write(diagram, ann, layout='straight'):
     # the CellDesigner file of a map (model.Map), with ann the MIRIAM annotation (annotation.py), in
-    # one of LAYOUTS (user, 2026-10-24): 'straight', the simplest fallback (straight lines between
+    # one of LAYOUTS: 'straight', the simplest fallback (straight lines between
     # centres, process glyphs midway); 'bends' (straight & bends), the fallback: also the input's key
     # bends, anchors and modifier routes (F022 BCAA v04); 'advanced', the main file: that, with the
     # tidy moves (main lines straightened, an end onto a larger node's centre line, a modifier onto
@@ -178,7 +178,7 @@ def write(diagram, ann, layout='straight'):
     advanced = layout != 'straight'
     diagram = opened_ors(without_delays(diagram, 'CellDesigner'))
     eq = [i for i, d in diagram.nodes.items() if d.kind == 'Operator' and d.labels[:1] == [EQUIV]]
-    if eq:  # CellDesigner has no equivalence operator: its unknown gate, the line out a dashed stimulation (user, 2026-10-25)
+    if eq:  # CellDesigner has no equivalence operator: its unknown gate, the line out a dashed stimulation
         report.say('changed', 'equivalence operator written as CellDesigner\'s unknown gate ? (%s)' % ', '.join(eq))
         diagram = replace(diagram, nodes={i: replace(d, labels=['?']) if i in eq else d for i, d in diagram.nodes.items()},
                           arcs=[replace(a, head='stimulation', dashed=True) if a.source in eq else a for a in diagram.arcs])
@@ -205,7 +205,7 @@ def write(diagram, ann, layout='straight'):
             members.setdefault(d.parent, []).append(i)
     def name_complex(c):  # an unlabelled complex is named after its members, as CellDesigner does
         if not label[c]:  # (inner complexes first: PKA cat:PKA reg:cAMP:cAMP, not "PKA cat:")
-            # each member once (user: PKA reg:cAMP, not PKA reg:cAMP:cAMP)
+            # each member once (PKA reg:cAMP, not PKA reg:cAMP:cAMP)
             label[c] = ':'.join(dict.fromkeys(name_complex(m) if m in members else label[m] for m in members[c]))
         return label[c]
     for c in members:
@@ -224,7 +224,7 @@ def write(diagram, ann, layout='straight'):
     for i in sv:
         st = [(txt, ang) for txt, ang in sv[i] if is_structural(txt)]
         if st:
-            # counts dropped ("1:cAMP" and "2:cAMP" -> "cAMP", user's edit of estrogen v01);
+            # counts dropped (1:cAMP and 2:cAMP -> cAMP, as in a hand edit of estrogen);
             # placed where the icon with the highest count is
             name = lambda txt: re.sub(r'^\d+:', '', txt)
             cnt = lambda txt: int(re.match(r'^(\d+):', txt).group(1)) if re.match(r'^\d+:', txt) else 0
@@ -233,7 +233,7 @@ def write(diagram, ann, layout='straight'):
         if ents[i].kind == 'Complex' and sv[i]:
             report.say('left out', 'complex %s: state variables not converted' % i); sv[i] = []
     # a protein marked only by free text (Su, Glut: not in CellDesigner's menu) gets no empty
-    # residues: the free-text state where it is marked, nothing where unmodified (user, 2026-10-16)
+    # residues: the free-text state where it is marked, nothing where unmodified
     free = {label[i] for i in struct} - {label[i] for i in sv if any(txt for txt, _ in sv[i])}
     for i in sv:
         if label[i] in free: sv[i] = []
@@ -252,13 +252,13 @@ def write(diagram, ann, layout='straight'):
             # the same site on another node of this protein: same site (Pa@26), wherever the
             # icon sits (eNOS: Pa@26 at three places gave three residues); no site: same place.
             # Site names are not written: CellDesigner and MINERVA show only the modification
-            # symbol in the circle (P, Ac, Me); user's rule, glutaminase 2026-10-13
+            # symbol in the circle (P, Ac, Me); glutaminase
             site = txt.partition('@')[2]
             hit = next((s for s in sites if s['site'] == site and (site or abs(s['angle'] - ang) < 0.3)), None)
             if hit is None:
                 hit = {'id': '%s_r%d' % (pid, len(sites) + 1), 'site': site, 'angle': ang}
                 # the top middle stays free for MINERVA's N:x; state variables on the sides
-                # (lower half) or at the corners (user's rule, 2026-10-13)
+                # (lower half) or at the corners
                 if mult[i] > 1 and abs(ang - math.pi / 2) < math.pi / 8:
                     report.say('warning', '%s: state variable %r at the top middle, where N:%d goes' % (label[i], txt, mult[i]))
                 sites.append(hit)
@@ -295,7 +295,7 @@ def write(diagram, ann, layout='straight'):
                ''.join('%02x' % max(0, round(255 - (255 - c) / BAND)) for c in seen))
         sub(a, 'paint', color='ff' + rgb, scheme='Color'); sub(a, 'info', state='empty', angle='-1.5707963267948966')
     # one species per entity, each glyph an alias of it, as CellDesigner saves a molecule drawn
-    # twice (the user's pyrimidine: ATP is species s11 with aliases n3 and n12; user, 2026-10-19);
+    # twice (the pyrimidine map: ATP is species s11 with aliases n3 and n12);
     # a member's species belongs to its complex's species; a source or sink stays on its own (SBGN
     # does not clone the empty set)
     rep, first = {}, {}
@@ -410,11 +410,11 @@ def write(diagram, ann, layout='straight'):
     ops = {i for i, d in N.items() if d.kind == 'Operator'}
     gate_in = {o: [e.source if e.target == o else e.target for e in E if o in (e.source, e.target) and e.head is None
                    and (e.source if e.target == o else e.target) in ents] for o in ops}
-    for o in ops:  # left to right, as in the user's file
+    for o in ops:  # left to right, as in a CellDesigner file
         gate_in[o].sort(key=lambda m: (N[m].box[0], N[m].box[1]))
     for e in E:
         if e.source in ops and e.target in procs and e.head in MOD:
-            for m in gate_in[e.source]:  # CellDesigner lists the gate's inputs (user's mevalonate gate)
+            for m in gate_in[e.source]:  # CellDesigner lists the gate's inputs (the mevalonate gate)
                 catalysed.setdefault(m, []).append('re_' + sid(e.target))
     def identity(x, i):
         d = ents[i]
@@ -452,7 +452,7 @@ def write(diagram, ann, layout='straight'):
             etree.SubElement(etree.SubElement(h, '{%s}head' % XH), '{%s}title' % XH)
             body = etree.SubElement(h, '{%s}body' % XH)
             # the family's name, its members' sites, each line ended: CellDesigner 4.4.2 drops, on saving, the text
-            # on the same line as the RDF ("Family: PKA regulatory subunits", carnitine and glycolysis, 2026-11-10)
+            # on the same line as the RDF ('Family: PKA regulatory subunits', carnitine and glycolysis)
             body.text = ''.join(l + '\n' for l in notes(d.data)) or None
             miriam(body, spec(i), label[i], abc=True)
             x = sub(s, 'annotation'); sub(x, 'complexSpecies', spec(d.parent))
@@ -518,7 +518,7 @@ def write(diagram, ann, layout='straight'):
             for e in mods:
                 m = e.source
                 i, M, T, at, pts = drawing.modifier(p, g, e, len(mods) + len(gates) > 1)
-                # a line to the centre has no linkTarget (the user's CellDesigner edit of estrogen v01)
+                # a line to the centre has no linkTarget (a CellDesigner edit of estrogen)
                 k = sub(lm, 'modification', type=typed(e, MOD[e.head]), modifiers=spec(m), aliases='sa_' + sid(m),
                         targetLineIndex='-1,%d' % i)
                 if pts:  # frame: origin the modifier's centre (or its anchor), x axis to the arc's end
@@ -527,7 +527,7 @@ def write(diagram, ann, layout='straight'):
                 if at:  # as the PD map writes an anchored modifier
                     sub(sub(k, 'linkTarget', species=spec(m), alias='sa_' + sid(m)), 'linkAnchor', position=at)
                 sub(k, 'line', width='1.0', color='ff000000')
-            # a gate (the user's CellDesigner file, mevalonate): one modification of type
+            # a gate (a CellDesigner file, mevalonate): one modification of type
             # BOOLEAN_LOGIC_GATE_* listing all inputs, the gate at editPoints (absolute; checked
             # through MINERVA), then one modification per input to the gate, centre (INACTIVE)
             for e in gates:
@@ -539,7 +539,7 @@ def write(diagram, ann, layout='straight'):
                 line(k)
                 sub(k, 'line', width='1.0', color='ff000000')
                 for m in inp:
-                    # as CellDesigner saves it: targetLineIndex -1,0, no linkTarget (mevalonate, user's file)
+                    # as CellDesigner saves it: targetLineIndex -1,0, no linkTarget (mevalonate)
                     k = sub(lm, 'modification', type=MOD[e.head], modifiers=spec(m), aliases='sa_' + sid(m), targetLineIndex='-1,0')
                     line(k)
                     sub(k, 'line', width='1.0', color='ff000000')
@@ -631,8 +631,8 @@ HEAD.update({'UNKNOWN_' + k: v for k, v in list(HEAD.items()) if k.startswith(('
 REDUCED_TYPES = {k for k in HEAD if 'INFLUENCE' in k or 'REDUCED' in k} | {'PHYSICAL_STIMULATION'}  # between entities in older files (SREBP, ACLY)
 
 
-# a compartment's one paint colour: its two lines in it, the band between them in it at alpha 63 (the user's
-# ExposomeMap-PM, CellDesigner's screen and PDF export, 2026-10-28), the inside not filled
+# a compartment's one paint colour: its two lines in it, the band between them in it at alpha 63 (as
+# ExposomeMap-PM shows in CellDesigner's screen and PDF export), the inside not filled
 BAND = 63 / 255
 
 
@@ -643,7 +643,7 @@ def band(c):
 
 def paint(c):
     # a CellDesigner colour AARRGGBB as #RRGGBB; None when transparent (alpha 00, or six digits, which
-    # CellDesigner reads as alpha 00: ExposomeMap-PM's name tags, drawn as bare text; user's PDF, 2026-10-28)
+    # CellDesigner reads as alpha 00: ExposomeMap-PM's name tags, drawn as bare text)
     return None if len(c) < 8 or c[:2] == '00' else '#' + c[2:].upper()
 
 
@@ -664,7 +664,7 @@ def border_point(a):
 
 
 def straight(m):
-    # the map for straight SBGN-ML (user, 2026-10-18): CellDesigner's bends placed the process
+    # the map for straight SBGN-ML: CellDesigner's bends placed the process
     # square, and the arcs go straight, so each process midway between its main reactant and
     # product: its first consumption and first product (read() writes the main line first), or of
     # a reversible process (products only) its first two products
@@ -689,7 +689,7 @@ def points(s):
 
 def read(path):
     # a CellDesigner file as a map (model.Map), its own geometry kept (node sizes, arcs at its anchor
-    # points as yEd ports, modifier arcs ending beside the square; user, 2026-10-16, PD02
+    # points as yEd ports, modifier arcs ending beside the square, PD02
     # eicosanoids); what does not convert is printed. The straight layout: layout.at_centres
     r = etree.parse(path).getroot()
     ns = {'cd': CD, 's': SBML, 'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#', 'bq': 'http://biomodels.net/biology-qualifiers/',
@@ -747,7 +747,7 @@ def read(path):
             sa = f(a, 'cd:structuralState')
             states.append((st.get('structuralState'),) + border_point(float(sa.get('angle')) if sa is not None else math.pi / 2))
         if (f(a, 'cd:activity').text if f(a, 'cd:activity') is not None else '') == 'active':
-            states.append(('active', 0.5, -0.5))  # user, Q10
+            states.append(('active', 0.5, -0.5))
         info = f(a, 'cd:info')
         units = [info.get('label') if info.get('prefix') == 'free input' else '%s:%s' % (info.get('prefix'), info.get('label'))] \
             if info is not None and info.get('state') != 'empty' else []
@@ -756,7 +756,7 @@ def read(path):
         cnt = [int(u[2:]) for u in units if re.fullmatch(r'N:\d+', u)]
         if n == 2 and cnt:  # a dimer with its count as a unit (the writer beyond 2, AsthmaMap)
             n = cnt[0]
-        elif n > 1:  # N:x as on every multimer of our yEd maps (N:2 included, user 2026-10-18)
+        elif n > 1:  # N:x as on every multimer of the atlas yEd maps (N:2 included)
             units.append('N:%d' % n)
         pv = f(a, 'cd:usualView/cd:paint')
         uris = [li.get('{%s}resource' % ns['rdf']) for li in xs(an, './/rdf:Description/*/rdf:Bag/rdf:li')] if an is not None else []
@@ -817,7 +817,7 @@ def read(path):
         br, bp = list(xs(x, 'cd:baseReactants/cd:baseReactant')), list(xs(x, 'cd:baseProducts/cd:baseProduct'))
         if any(alias_of(e) not in nodes for e in br + bp):
             report.say('left out', 'reaction %s: an end is not converted, left out' % rid); continue
-        if typ in REDUCED_TYPES:  # reduced notation: an arc between the entities (user, Q8), its ends at their
+        if typ in REDUCED_TYPES:  # reduced notation: an arc between the entities, its ends at their
             # ports and its edit points in the frame between them, as a process's main line
             A, B, s_, t_ = end(br[0]), end(bp[0]), alias_of(br[0]), alias_of(bp[0])
             arcs.append(Arc(id=rid, source=s_, target=t_, head=HEAD[typ],
@@ -841,7 +841,7 @@ def read(path):
             continue
         if len(br) + len(bp) == 3:
             # a branched reaction (association: two reactants, dissociation, truncation: two
-            # products) as one process at the branch point (user, Q5). The point: last edit
+            # products) as one process at the branch point. The point: last edit
             # point, in the frame of the three species (origin the first, axes to the other two);
             # each branch's own edit points (num0, num1, num2) in the frame point -> its species
             # (cd2sbgnml, AssociationReactionModel)
@@ -871,14 +871,14 @@ def read(path):
             lines = [(alias_of(br[0]), True, line[1:k + 1], port(alias_of(br[0]), A)),
                      (alias_of(bp[0]), False, line[k + 1:-1], port(alias_of(bp[0]), B))]
             # an added reactant's link joins the square's segment at 3/8, a product's at 5/8, the
-            # segment's ends where CellDesigner draws them (the user's file
+            # segment's ends where CellDesigner draws them (the file
             # tests/celldesigner/added-link-bends.xml; all 22 such links of two PD map submaps fit)
             P = rim(br[0], P, Q) if k == 0 else P
             Q = rim(bp[0], Q, P) if k == len(line) - 2 else Q
             joins = [(P[0] + t * (Q[0] - P[0]), P[1] + t * (Q[1] - P[1])) for t in (0.375, 0.625)]
         else:
             report.say('left out', 'reaction %s (%s): %d base reactants, %d base products, left out' % (rid, typ, len(br), len(bp))); continue
-        S = 18.0  # the process size in our yEd maps
+        S = 18.0  # the process size in the atlas yEd maps
         nodes[rid] = Node(id=rid, kind=PROCESS.get(typ, 'Process'), box=(sq[0] - S / 2, sq[1] - S / 2, S, S), labels=[''],
                           data={'References': refs(rx)} if refs(rx) else {})
         reversible = rx.get('reversible') != 'false'

@@ -49,10 +49,10 @@ def border(d, p):
 
 def at(d, ref, p, q, port=None):
     # where an arc read from SBGN-ML meets its glyph, from the glyph's centre (Arc.source_at, target_at): the file's own
-    # point (user, 2026-11-14: our SBGN-ML should draw as our GraphML; any tool's arc ends kept as the file gives them),
+    # point (SBGN-ML written here draws as the GraphML it came from; any tool's arc ends kept as the file gives them),
     # unless it lies on the line from the centre toward the next point q (within 1.5 px), which the centre (0, 0) draws
     # the same wherever on it the end stops (Newt stops short of the glyph for the arrowhead, others on its shape); an
-    # end at a process's or gate's port is the port itself (user, 2026-11-14: each file's own antenna length; the
+    # end at a process's or gate's port is the port itself (each file's own antenna length; the
     # renderer draws a port given outside the glyph as it is, its own 0.5 only where none is given), else its centre
     if ref != d.id:
         if not port:
@@ -109,11 +109,11 @@ def note(el, lines):  # lines as the element's notes (xhtml)
 
 
 def write(diagram, layout='advanced', newt=False):
-    # layout 'straight' (user, 2026-10-18): every arc straight from centre to centre (no bends, no
+    # layout 'straight': every arc straight from centre to centre (no bends, no
     # yEd ports, no process ports), the necessary minimum, improved by hand in Newt; 'advanced':
     # the drawing of the source kept (bends, arcs at yEd ports), the arcs of logic gates straight
     # (yEd's bend where the inputs meet lies past the gate's port: the line turns back, iNOS)
-    # newt (user, 2026-10-21): the map adjusted as Newt needs it (newt_layout); without it the
+    # newt: the map adjusted as Newt needs it (newt_layout); without it the
     # SBGN-ML of the source, its compartments as drawn
     diagram = without_delays(shifted(diagram), 'SBGN Process Description')
     if newt:
@@ -130,7 +130,7 @@ def write(diagram, layout='advanced', newt=False):
     # also draw it the other way), a logic arc from the entity into its gate
     # straight: an arc that shares its two ends with another keeps the source's bends, as Newt
     # curves two straight arcs between the same glyphs apart (iNOS: IFNGR consumed by the process
-    # it stimulates; user, 2026-10-18)
+    # it stimulates)
     pairs = collections.Counter(frozenset((a.source, a.target)) for a in diagram.arcs)
     arcs = []
     for a in diagram.arcs:
@@ -148,7 +148,7 @@ def write(diagram, layout='advanced', newt=False):
             cls = ARC.get(a.head)
             if cls is None:
                 report.say('left out', 'arc %s: no SBGN arc for %s, left out' % (a.id, a.head)); continue
-        if N[s].kind == 'Phenotype' and N[s].data.get('SBGN class') != 'perturbing agent':  # a perturbing agent, a submap or neither: not guessed (user, 2026-10-17)
+        if N[s].kind == 'Phenotype' and N[s].data.get('SBGN class') != 'perturbing agent':  # a perturbing agent, a submap or neither: not guessed
             report.say('left out', 'arc %s: leaves phenotype %s (%s), no SBGN Process Description equivalent, left out'
                        % (a.id, s, N[s].labels[0] if N[s].labels else '')); continue
         if a.tail:
@@ -163,8 +163,8 @@ def write(diagram, layout='advanced', newt=False):
         ins = [pts[-1] if pts else centre(N[s]) for _, c, s, t, pts, *_ in arcs if t == p and c in ('consumption', 'logic arc')]
         outs = [pts[0] if pts else centre(N[t]) for _, c, s, t, pts, *_ in arcs if s == p and (c == 'production' or p in ops)]
         (cx, cy), w, h = centre(N[p]), N[p].box[2], N[p].box[3]
-        # a port the map gives (an arc's end more than 0.5 px outside the glyph's box: read from SBGN-ML, user
-        # 2026-11-14) is kept, the other one mirrored through the centre; both in one place (a file's slip): neither.
+        # a port the map gives (an arc's end more than 0.5 px outside the glyph's box: read from SBGN-ML)
+        # is kept, the other one mirrored through the centre; both in one place (a file's slip): neither.
         # The same rule as the renderer's (the viewer's yrender, its header: ports), the master
         out_of = lambda o: abs(o[0]) > w / 2 + 0.5 or abs(o[1]) > h / 2 + 0.5
         gin = next(((cx + g[1][0], cy + g[1][1]) for _, c, s, t, _, _, _, g in arcs
@@ -180,7 +180,7 @@ def write(diagram, layout='advanced', newt=False):
             continue
         mean = lambda q, d: (sum(x for x, _ in q) / len(q), sum(y for _, y in q) / len(q)) if q else d
         a, b = mean(ins, (cx, cy)), mean(outs, (cx, cy))
-        if p in ops and outs:  # a gate faces what it controls (user, 2026-11-14; the viewer's renderer the same)
+        if p in ops and outs:  # a gate faces what it controls (the viewer's renderer the same)
             a = (cx, cy)
         if a == b:  # reversible (products on both sides): the line through the first two
             q = outs[:2] if len(outs) > 1 else [(cx - 1, cy), (cx + 1, cy)]
@@ -189,18 +189,18 @@ def write(diagram, layout='advanced', newt=False):
         horizontal = abs(vx) >= abs(vy)
         k = (1 if (vx if horizontal else vy) >= 0 else -1)
         side = w if horizontal else h
-        r = side / 2 + max(0.5 * side, 9)  # the renderer's antenna: half the side, at least 9 px (user, 2026-11-14)
+        r = side / 2 + max(0.5 * side, 9)  # the renderer's antenna: half the side, at least 9 px
         one = (cx - k * r, cy) if horizontal else (cx, cy - k * r)
         two = (cx + k * r, cy) if horizontal else (cx, cy + k * r)
         ports[p] = ('horizontal' if horizontal else 'vertical', one, two)
-    if layout == 'straight':  # no ports: every arc runs from centre to centre (user, 2026-10-18)
+    if layout == 'straight':  # no ports: every arc runs from centre to centre
         ports = {}
 
     root = etree.Element(S + 'sbgn', nsmap={None: NS})
     # language, not version: libsbgn's schema lists no PD version after 1.3
     m = etree.SubElement(root, S + 'map', id=xml_id(diagram.name.replace('-', '_')), language='process description')
 
-    # colours and font sizes: one render style per fill, outline and size (user, 2026-10-28: the source's sizes kept)
+    # colours and font sizes: one render style per fill, outline and size (the source's sizes kept)
     fills = {}
     for i, d in N.items():
         if d.fill or d.line or d.font or d.weight:
@@ -231,7 +231,7 @@ def write(diagram, layout='advanced', newt=False):
     def annotate(g, i, d):
         if d.kind not in CLASS or d.kind in PROCESSES:
             return
-        if notes(d.data):  # the family's name, its members' sites (user, 2026-10-22)
+        if notes(d.data):  # the family's name, its members' sites
             note(g, notes(d.data))
         lab = ' '.join(d.labels[0].split()) if d.labels else ''
         if lab not in ann:
@@ -344,12 +344,12 @@ def write(diagram, layout='advanced', newt=False):
             p1 = (centre(N[t])[0] + t_at[0], centre(N[t])[1] + t_at[1]) if any(t_at) else border(N[t], prv)
             if newt and any(t_at) and t not in hubs:
                 pts = pts + newt_layout.leaving(N[t], p1, prv, border(N[t], prv))
-        # advanced, plain: every bend the source draws (user, 2026-11-14: our SBGN-ML should look exactly as our
+        # advanced, plain: every bend the source draws (the SBGN-ML looks exactly as its
         # GraphML), only a bend exactly on the line between its neighbours left out. For Newt and straight, key bends
-        # only (user, 2026-10-18): a bend stays if leaving it out moves the line by more than 20 px (layout.bends, as
+        # only: a bend stays if leaving it out moves the line by more than 20 px (layout.bends, as
         # for CellDesigner), or the line without it runs through a node it does not run through now; then a bend on or
         # near (5 px) the straight line between its neighbours is left out (the bends that placed the process in
-        # CellDesigner, and the 3 px stubs at its ports, are not needed; user, 2026-10-18)
+        # CellDesigner, and the 3 px stubs at its ports, are not needed)
         line = [p0] + pts + [p1]
         if layout == 'advanced' and not newt:
             pts = unbent(line, 0.5)[1:-1]
@@ -361,7 +361,7 @@ def write(diagram, layout='advanced', newt=False):
         if newt:
             pts = newt_layout.unaimed(pts, p0 if s in ports else centre(N[s]), p1 if t in ports else centre(N[t]))
         e = etree.SubElement(m, S + 'arc', {'class': cls, 'id': xml_id(a.id), 'source': src, 'target': tgt})
-        if a.dashed:  # SBGN PD has no unknown arc: kept in its notes (user, 2026-10-22)
+        if a.dashed:  # SBGN PD has no unknown arc: kept in its notes
             note(e, [UNKNOWN])
         etree.SubElement(e, S + 'start', x=repr(float(p0[0])), y=repr(float(p0[1])))
         for q in pts:
@@ -374,28 +374,28 @@ def text_of(el):  # an element's notes as plain text
     return ''.join(nt.itertext()) if (nt := el.find(S + 'notes')) is not None else ''
 
 
-# --- reading SBGN-ML (and Newt's .nwt) into the map model (docs/SBGNML.md, "The way back")
+# --- reading SBGN-ML (and Newt's .nwt) into the map model (docs/SBGNML.md, The way back)
 KIND = {v: k for k, v in CLASS.items() if k != 'SourceAndSink'}  # source and sink: yEd's EmptySet
 KIND.update(association='Process', dissociation='Process')  # read as the generic process (MINERVA, Newt)
 KIND['perturbing agent'] = 'Phenotype'  # as in CellDesigner
-KIND['perturbation'] = 'Phenotype'  # Activity Flow's perturbation, drawn as the perturbing agent (2026-11-15: CaMKII's Depolarization was left out)
-# SBGN classes our maps draw as another glyph (association and dissociation as the generic process, a perturbing
-# agent as a phenotype), kept as the node property "SBGN class" (user, 2026-11-14: shown as themselves): yrender draws
+KIND['perturbation'] = 'Phenotype'  # Activity Flow's perturbation, drawn as the perturbing agent (else left out: CaMKII's Depolarization)
+# SBGN classes the atlas maps draw as another glyph (association and dissociation as the generic process, a perturbing
+# agent as a phenotype), kept as the node property SBGN class (shown as themselves): yrender draws
 # the circles from it, yEd's PerturbingAgent carries the agent in GraphML, and SBGN-ML is written with the class again
-DRAWN_AS = {'association': 'Process', 'dissociation': 'Process', 'perturbing agent': 'Phenotype', 'perturbation': 'Phenotype'}  # class: our glyph (a
+DRAWN_AS = {'association': 'Process', 'dissociation': 'Process', 'perturbing agent': 'Phenotype', 'perturbation': 'Phenotype'}  # class: the atlas glyph (a
 # submap is read as itself, yEd's Submap, a rectangle)
 HEAD = {'consumption': None, 'logic arc': None, 'production': 'production', 'catalysis': 'catalysis',
         'inhibition': 'inhibition', 'modulation': 'modulation', 'stimulation': 'stimulation',
         'necessary stimulation': 'trigger'}
-# Activity Flow (L1V1.2, read only; user, 2026-10-17): an activity is drawn as the entity it comes
+# Activity Flow (L1V1.2, read only): an activity is drawn as the entity it comes
 # from, CellDesigner's way. Its unit of information's shape gives the glyph (none: a protein;
 # perturbation: phenotype, as in CellDesigner), its label (the molecule's name) stays a unit, and the
-# node properties "SBGN class" (biological activity) and "SBGN unit" (the unit's entity, if any) keep it (2026-11-15); the
+# node properties SBGN class (biological activity) and SBGN unit (the unit's entity, if any) keep it; the
 # influences are arcs between entities; a delay is an Operator labelled tau; a submap is a phenotype
 # with its name, its terminals and the tags left out; an equivalence arc is a plain line (to a terminal:
 # to the submap). In Newt's hybrid maps (PD and AF) an activity joined to its entity by a performance
 # arc is that entity, as in CellDesigner's reduced notation, and "activity" at the end of an activity's
-# label goes (user, 2026-10-19)
+# label goes
 ACTIVITY = {'macromolecule': 'Macromolecule', 'nucleic acid feature': 'NucleicAcidFeature', 'simple chemical': 'SimpleChemical',
             'unspecified entity': 'UnspecifiedEntity', 'complex': 'Complex', 'perturbation': 'Phenotype'}
 HEAD.update({'positive influence': 'stimulation', 'negative influence': 'inhibition', 'unknown influence': 'modulation'})
@@ -458,15 +458,15 @@ def read(path):
             unit = (u.get('name') or '') if u is not None else ''
             kind = ACTIVITY.get(unit.replace(' multimer', ''), 'Macromolecule')
             activities.add(i)
-            if re.search(r'\sactivity\s*$', text(g), re.I):  # the node is the molecule: "SHC activity" is SHC (user, 2026-10-19)
+            if re.search(r'\sactivity\s*$', text(g), re.I):  # the node is the molecule: "SHC activity" is SHC
                 g.find(S + 'label').set('text', re.sub(r'\s+activity\s*$', '', text(g), flags=re.I))
                 renamed.append(g.get('id'))
-        if af and cls == 'submap':  # a phenotype with the submap's name, no terminals or tags (user, 2026-10-17)
+        if af and cls == 'submap':  # a phenotype with the submap's name, no terminals or tags
             kind = 'Phenotype'
             for c in g.findall(S + 'glyph'):
                 if c.get('class') == 'terminal':
                     port[c.get('id')] = i
-        if kind is None:  # tag, annotation and the other glyphs our maps do not draw
+        if kind is None:  # tag, annotation and the other glyphs the atlas maps do not draw
             skipped.setdefault(cls, []).append(i); return
         for p in g.findall(S + 'port'):
             port[p.get('id')] = i
@@ -493,10 +493,10 @@ def read(path):
                     data.update(to_properties(etree.QName(q).localname == 'hasVersion', urns))
             break  # the glyph's own description
         data = from_notes(text_of(g), data)
-        if cls in DRAWN_AS:  # drawn as itself, read as the glyph our maps use (user, 2026-11-14)
+        if cls in DRAWN_AS:  # drawn as itself, read as the glyph the atlas maps use
             data['SBGN class'] = cls
-        # an activity drawn as its entity stays one (user, 2026-11-15: an Activity Flow map saved as Activity Flow): its
-        # class, and its unit's entity where it has one ("if there is no auxiliary unit, it's a protein activity")
+        # an activity drawn as its entity stays one (an Activity Flow map saved as Activity Flow): its
+        # class, and its unit's entity where it has one (no auxiliary unit: a protein activity)
         if unit is not None:
             data['SBGN class'] = cls
             if unit:
@@ -520,7 +520,7 @@ def read(path):
     for g in m.findall(S + 'glyph'):
         glyph(g, g.get('compartmentRef'))
     arcs, performers = [], {}
-    head = dict(HEAD, **{'equivalence arc': None})  # a plain line (user, 2026-10-17 for AF; 2026-11-14 for PD too: to a submap)
+    head = dict(HEAD, **{'equivalence arc': None})  # a plain line (AF; PD too: to a submap)
     for a in m.findall(S + 'arc'):
         cls = a.get('class')
         s, t = (port.get(a.get(k), a.get(k)) for k in ('source', 'target'))
@@ -530,7 +530,7 @@ def read(path):
             skipped.setdefault(cls + ' arc' if cls not in head else 'arc to a glyph left out', []).append(a.get('id')); continue
         pts = [(float(p.get('x')), float(p.get('y'))) for p in a.findall(S + 'next')]
         flux = cls in ('consumption', 'logic arc')  # a port where an arc starts (a product, a gate's output) is kept, where
-        # it ends only for these: a modifier aimed at a port ends on the glyph (the review, 2026-11-14)
+        # it ends only for these: a modifier aimed at a port ends on the glyph
         ends = [(float(e.get('x')), float(e.get('y'))) if e is not None else None for e in (a.find(S + 'start'), a.find(S + 'end'))]
         arcs.append(Arc(id=a.get('id'), source=s, target=t, head=head[cls], dashed=UNKNOWN in text_of(a), points=pts,
                         source_at=at(nodes[s], a.get('source'), ends[0], (pts or ends[1:])[0], at_port.get(a.get('source'))),

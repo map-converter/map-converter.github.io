@@ -1,11 +1,11 @@
-# Standard sizes (user, 2026-10-16), for a map from another drawing (CellDesigner -> GraphML), fonts included
-# (user, 2026-10-28: names 14, state variables and units 10; without it every conversion keeps the source's):
+# Standard sizes, for a map from another drawing (CellDesigner -> GraphML), fonts included
+# (names 14, state variables and units 10; without it every conversion keeps the source's):
 # proteins, genes and RNAs 80 x 40; metabolites 40 x 40 circles, the name may run past the circle
-# (user, 2026-10-23, iNOS; stadiums sized to the name until then); centres kept. A map whose
-# objects are clearly larger or smaller than ours (median protein height off 40 by more than 20%, e.g. a large font) is first scaled as a
-# whole, distances included. Collisions that follow are the user's to look at.
+# (iNOS); centres kept. A map whose
+# objects are clearly larger or smaller than the standard (median protein height off 40 by more than 20%, e.g. a large font) is first scaled as a
+# whole, distances included. Collisions that follow are left to be checked by hand.
 # The file with standard sizes is made when asked (the page's tick box, to harmonise a map) or when
-# the map is drawn at another scale than usual (user, 2026-10-20): the median protein height off our 40, the median
+# the map is drawn at another scale than usual: the median protein height off the standard 40, the median
 # label font off the program's default, or, on a map without proteins, the median metabolite height
 # off CHEMICAL, each by more than NOTICED.
 import math, statistics
@@ -15,11 +15,11 @@ PROTEIN = (80.0, 40.0)
 SIZE = {'Macromolecule': PROTEIN, 'NucleicAcidFeature': PROTEIN,
         'SimpleChemical': (40.0, 40.0)}  # every metabolite a circle (the yEd glyph is one when square)
 NOTICED = 1.2  # a scale this far from 1 (either way) is rescaled
-FONT_STANDARD = 14.0  # names on our maps; state variables and units 10 (user, 2026-10-28: standard node and font sizes)
+FONT_STANDARD = 14.0  # names on the atlas maps; state variables and units 10 (standard node and font sizes)
 # the program's default label font: CellDesigner (all 926 labels of the website's CellDesigner
 # files), Newt (its sample files)
 FONT = {'CellDesigner': 12.0, 'Newt': 11.0}
-CHEMICAL = (25.0, 40.0)  # usual metabolite heights: CellDesigner's 70 x 25 to Newt's 40 (ours 40; user, 2026-10-20)
+CHEMICAL = (25.0, 40.0)  # usual metabolite heights: CellDesigner's 70 x 25 to Newt's 40 (the atlas maps' 40)
 ENTITY = ('Macromolecule', 'NucleicAcidFeature', 'SimpleChemical', 'Complex', 'UnspecifiedEntity', 'Perturbation', 'Phenotype')
 
 
@@ -52,7 +52,7 @@ def reasons(m, program):
 
 def standard(m, program, asked=False):
     # the map with standard node sizes when asked or drawn at another scale (reasons), else None; no
-    # note under the map, the description page says what the file holds (user, 2026-10-20)
+    # note under the map, the description page says what the file holds
     if not asked and not reasons(m, program):
         return None
     return standardise(m)
@@ -68,7 +68,7 @@ def standardise(m):
             W, H = d.box[2], d.box[3]  # glyphs of their own fixed size
         ratio[i] = (W / w if w else 1, H / h if h else 1)
         nodes[i] = replace(d, box=(x + w / 2 - W / 2, y + h / 2 - H / 2, W, H),
-                           font=FONT_STANDARD if d.kind in ENTITY else None, small=10.0 if d.states or d.units else None,  # our fonts too
+                           font=FONT_STANDARD if d.kind in ENTITY else None, small=10.0 if d.states or d.units else None,  # the standard fonts too
                            label_at=tuple(v / s for v in d.label_at) if d.label_at else None)
     # ports keep their place on the node's border; bends move with the map, and the bend next to
     # a port stays in line with it where it was (a straight run into the node stays straight)

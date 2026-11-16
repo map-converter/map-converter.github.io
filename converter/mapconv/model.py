@@ -24,7 +24,7 @@ class Node:
     label_at: tuple = None  # compartment: top left of its name, relative to the box
     data: dict = field(default_factory=dict)  # yEd node data by name: url, annotation (HGNC symbol, UniProt, ...)
     dashed: bool = False  # dashed border: a hypothetical entity (CellDesigner)
-    border: bool = True  # its outline drawn (CellDesigner draws none round an unknown species; user, 2026-10-28)
+    border: bool = True  # its outline drawn (CellDesigner draws none round an unknown species)
     outline: str = None  # the plain yEd shape it was read from by its outline (not the SBGN palette)
     species: str = None  # the entity the file says the glyph draws (CellDesigner species), if it says one
     font: float = None  # its label's font size, where the file gives one (yEd, CellDesigner, Newt), kept on conversion
@@ -60,7 +60,7 @@ class Map:
 # to the glyphs (Node and Arc ids above) that draw it. An entity is a node with properties and
 # property records, as SBGN PD describes an entity pool and momapy models it (sbgn.pd.model: a
 # StateVariable(value, variable), a UnitOfInformation(prefix, value), subunits; annotations beside
-# the model as qualifier and resource): what a conversion must keep (check.content, user 2026-10-22).
+# the model as qualifier and resource): what a conversion must keep (check.content).
 @dataclass(frozen=True, order=True)
 class StateVariable:
     value: str                 # P, Ac, active, or '' for a site drawn unmodified

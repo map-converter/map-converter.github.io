@@ -1,8 +1,8 @@
-# The CellDesigner adapter (restructuring step 4, 2026-10-19): where every line, square and point
+# The CellDesigner adapter: where every line, square and point
 # goes as CellDesigner draws it, before the file is written. The boxes in CellDesigner's frame and
 # sizes, each reaction's main line and each modifier arc's end, anchor and edit points. It moves no
 # node but for the room of a complex's name (cd_tidy.py moves some for the advanced file); held (as
-# drawn, user 2026-10-24): process glyphs and ports held by edit points.
+# drawn): process glyphs and ports held by edit points.
 import math
 from dataclasses import dataclass
 from . import layout, report
@@ -14,7 +14,7 @@ SHIFT = 3.0  # the process glyph placed by edit points only when yEd has it furt
 EDGE = 3.0  # an added edit point stays this far outside a node, as CellDesigner draws lines over nodes (px)
 CHEMICAL = 40.0  # metabolites are drawn as circles of this diameter, centred on the yEd node
 # the points of the process square a modifier can end at (targetLineIndex -1,i): (along the flow,
-# to its right) in half square sizes (MINERVA's getAnchorPointOnReactionRect; the user's PDH edit
+# to its right) in half square sizes (MINERVA's getAnchorPointOnReactionRect; a hand edit of PDH
 # has 6 and 7)
 SQUARE = {2: (0, -1), 3: (0, 1), 4: (-1, -1), 5: (1, -1), 6: (-1, 1), 7: (1, 1)}
 
@@ -38,7 +38,7 @@ def anchor_point(box, side, circle=False, hexagon=False):
         a = math.radians(ANGLE[side])
         return (x + w / 2 * (1 + math.cos(a)), y + h / 2 * (1 - math.sin(a)))
     if hexagon:  # a phenotype: on its hexagon, corners h/2 in from the tips, the quarter points halfway along an
-        # edge (the user's PDF of ExposomeMap-PM, CellDesigner 4.4, 190 x 40 boxes, 2026-10-28)
+        # edge (CellDesigner's PDF of ExposomeMap-PM, CellDesigner 4.4, 190 x 40 boxes)
         i = min(h / 2, w / 2)
         fx, fy = ANCHOR[side]
         if fy in (0, 1):  # top or bottom: the flat edge between the corners, N in the middle
@@ -95,7 +95,7 @@ def boxes(N, ents, members):
     # NAME_ROOM below their outline (a state variable on the bottom edge 8.5 px below the node,
     # yEd's second shape of a multimer 6 px), as far as the space above allows, and the complex
     # grows down for the rest; a GraphML packed by the skill's complex_pack.py has the room and
-    # keeps its geometry (user, 2026-10-18; first 25 px from the node, pyrimidine edits 2026-10-16);
+    # keeps its geometry (first 25 px from the node, pyrimidine edits);
     # inner complexes first
     def low(j):
         x, y, w, h = box[j]
@@ -138,7 +138,7 @@ def draw(diagram, ents, members, label, advanced, held=False):
     lines = lambda: main_lines(diagram, box, ents, (x0, y0))
 
     # ports sit on the front shape of a multimer: CellDesigner draws it 6 smaller in
-    # width and height (the user's glycolysis file: PFKFB2 dimer; every multimer is a dimer here)
+    # width and height (the glycolysis file: PFKFB2 dimer; every multimer is a dimer here)
     front = {}
     for i, d in ents.items():
         k = 6 if d.count > 1 and d.kind != 'SimpleChemical' else 0
@@ -189,11 +189,11 @@ def draw(diagram, ents, members, label, advanced, held=False):
         r_, q_ = ins[0].source, outs[0].target
         ra = qa = None  # line ends at the centres
         # advanced: the significant bends of the yEd route (a Z, a detour round other nodes; PD02
-        # eicosanoids, 2026-10-16)
+        # eicosanoids)
         rb = layout.bends([cen(r_)] + route(p, ins[0].points) + [c]) if advanced else []
         qb = layout.bends([c] + route(p, outs[0].points) + [cen(q_)]) if advanced else []
         if not rb + qb and p in twins:
-            # two processes on the same two species, drawn straight (user's edit of mevalonate,
+            # two processes on the same two species, drawn straight (a hand edit of mevalonate,
             # HMGCR): each a straight line between quarter points on the facing sides, on the side
             # of the line between the centres where yEd has the process (upper/lower, left/right)
             (rx_, ry_), (qx_, qy_) = cen(r_), cen(q_)
@@ -209,23 +209,23 @@ def draw(diagram, ents, members, label, advanced, held=False):
         twin = bool(ra)
         # a significant bend on the main line: one long L on the reactant arc or on the product arc
         # (with the bend at the process's port: it says from which side the line comes in;
-        # user's iNOS v08 edit, ASL and ASS1 as L shapes)
+        # a hand edit of iNOS, ASL and ASS1 as L shapes)
         wr = layout.turn([cen(r_)] + yed(ins[0].points) + [c])
         wq = layout.turn([cen(q_)] + yed(outs[0].points)[::-1] + [c])
         if advanced and not twin:
             # a line meets an entity where the yEd arc meets its border (a CellDesigner anchor read
             # back); else a metabolite circle where its name is not: N, S, ESE or WSW, by the way
-            # it leaves (the L's first leg, else towards the process; user's PD02 eicosanoids)
+            # it leaves (the L's first leg, else towards the process; PD02 eicosanoids)
             other = {'h': 'v', 'v': 'h'}
             ra = nearest(r_, ins[0].source_at) or (meet(cen(r_), c, wr or (other[wq] if wq else None)) if N[r_].kind == 'SimpleChemical' else None)
             qa = nearest(q_, outs[0].target_at) or (meet(cen(q_), c, wq or (other[wr] if wr else None)) if N[q_].kind == 'SimpleChemical' else None)
-            # only where they change the line (user's edit of pyrimidine v06: side middles on the
+            # only where they change the line (a hand edit of pyrimidine: side middles on the
             # line's own axis removed)
             ra = ra if ra and off_line(r_, ra, (rb + [c])[0]) else None
             qa = qa if qa and off_line(q_, qa, (qb[::-1] + [c])[0]) else None
         # advanced: a main line yEd draws level into a larger node beside its centre (iNOS: CaM ->
         # CaM:iNOS, 25 px off): CellDesigner aims at the centre, so an edit point on the line just
-        # outside that node (EDGE), the line on to the centre from there (user, 2026-10-24, in place
+        # outside that node (EDGE), the line on to the centre from there (in place
         # of moving the other end: a point under the node showed the line running to its centre).
         # The way back drops it (layout.visible)
         under = None
@@ -247,8 +247,8 @@ def draw(diagram, ents, members, label, advanced, held=False):
         # edit points: one long L (both layouts); in the advanced layout else the route's bends
         pts, k, corner = rb + qb, len(rb), False
         # a line that leaves a metabolite circle below its centre (meet: where the name is not) keeps its
-        # first bend in line with that point, as a modifier does (user's phosphoinositides edit,
-        # 2026-11-10: PI(3,4)P2 -> PI4P, a 7 px jog where yEd's bend stayed at the centre's height)
+        # first bend in line with that point, as a modifier does (a hand edit of
+        # phosphoinositides: PI(3,4)P2 -> PI4P, a 7 px jog where yEd's bend stayed at the centre's height)
         for j, (i, a, P) in ((0, (r_, ra, A)), (-1, (q_, qa, B))):
             if pts and a and N[i].kind == 'SimpleChemical':
                 q, C = pts[j], cen(i)
@@ -273,8 +273,8 @@ def draw(diagram, ents, members, label, advanced, held=False):
         across = abs((c[0] - P[0]) * f[1] - (c[1] - P[1]) * f[0])
         if held and across < 12 and abs(u - 0.5) * L > SHIFT and 0.1 < u < 0.9:
             # the square where yEd has the process, if that is on its segment and more than SHIFT px
-            # from midway (user, 2026-10-24: no node moved; first only for a modifier straight
-            # across, the user's pyrimidine v07 edit, CAD). Two edit points half way to the nearer
+            # from midway (no node moved; first only for a modifier straight
+            # across, a hand edit of pyrimidine, CAD). Two edit points half way to the nearer
             # end on either side, on the line, so CellDesigner draws nothing more, the arcs keep
             # their antennas, and the way back drops them (layout.visible); both outside the end
             # nodes (EDGE), at the same distance, or the process glyph stays midway
@@ -290,7 +290,7 @@ def draw(diagram, ents, members, label, advanced, held=False):
             # not move onto the midway square (straight & bends and advanced alike)
             if across < 3 and abs(u - 0.5) * L > 3 and 0.1 < u < 0.9:
                 at = (P[0] + u * L * f[0], P[1] + u * L * f[1])
-                # both outside the end nodes (EDGE), as above (user's phosphoinositides edit, 2026-11-10:
+                # both outside the end nodes (EDGE), as above (a hand edit of phosphoinositides:
                 # a point inside GRB2:GAB1, the line through the complex), or the process glyph stays midway
                 d = min(min(u, 1 - u) / 2 * L, *(reach(at, (w * f[0], w * f[1]), box[i]) for w in (-1, 1) for i in (r_, q_)))
                 if d >= 1:
@@ -342,7 +342,7 @@ def draw(diagram, ents, members, label, advanced, held=False):
     def target(g, e, pt, many):
         # the point of the square an arc from pt ends at: the side facing pt; in the advanced layout,
         # where several arcs regulate the process and yEd ends this one off its centre, the point
-        # nearest that yEd port, so the arcs stay apart (user, PDH 2026-10-17)
+        # nearest that yEd port, so the arcs stay apart (PDH)
         o, h, f = e.target_at, N[e.target].box[2] / 2, g['f']
         if advanced and many and math.hypot(*o) > 2:
             a, c = (o[0] * f[0] + o[1] * f[1]) / h, (o[1] * f[0] - o[0] * f[1]) / h
@@ -357,11 +357,11 @@ def draw(diagram, ents, members, label, advanced, held=False):
         # a modifier arc of process p (main line g): the point of the square it ends at, its start M,
         # its end T, the anchor on the modifier and its edit points; many: several arcs regulate p
         m = e.source; M = cen(m)
-        # the side facing the arc's last bend where yEd bends it, else its start (user's phosphoinositides
-        # edit, 2026-11-10: EGF:EGFR catalysing its own step sits on the main line, and the arc ended on
+        # the side facing the arc's last bend where yEd bends it, else its start (a hand edit of
+        # phosphoinositides: EGF:EGFR catalysing its own step sits on the main line, and the arc ended on
         # the far side, its arrowhead hidden)
         i = target(g, e, (yed(e.points)[-1] if advanced and e.points else M), many)
-        T = attach(g, i)  # the arc's end on the square (the user's glycolysis v01 bends)
+        T = attach(g, i)  # the arc's end on the square (the bends of a hand edit of glycolysis)
         # a slanting straight arc from the border of another entity: that anchor (as read
         # back); one that runs across at the process's height takes a lane (below)
         at = advanced and not e.points and N[m].kind != 'SimpleChemical' and nearest(m, e.source_at)

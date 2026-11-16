@@ -1,6 +1,6 @@
 # The biology of a map (model.Biology) from its drawing: which glyphs draw one entity, and the
-# reactions and influences between entities. The entity key (user, 2026-10-19; CLAUDE.md,
-# "Restructuring"): two glyphs are one entity when they have the same identity, state,
+# reactions and influences between entities. The entity key:
+# two glyphs are one entity when they have the same identity, state,
 # compartment and glyph class. Identity: an identifier where the glyph has one (proteins, genes,
 # RNA: HGNC ID, else UniProt, else HGNC symbol; metabolites: ChEBI, conjugate acid and base
 # joined), else the normalised label, which joins an annotated entity when it points to exactly
@@ -45,7 +45,7 @@ def own_identity(d):
     return identifier(d.data, d.kind)
 
 
-# what a glyph states besides its entity key (user, 2026-10-22: a shape and its arcs are not all
+# what a glyph states besides its entity key (a shape and its arcs are not all
 # the biology a map conveys), as records (model.StateVariable, ...); node properties that are not
 # biology: Orientation (yEd), notes
 IDS = ('HGNC', 'HGNC symbol', 'UniProt', 'ChEBI')
@@ -108,9 +108,9 @@ def build(m):
         return tuple(sorted(mods)), tuple(sorted(set(lig)))
 
     # glyph class: the class, the multimer count, a chain length written in the label (glycogen:
-    # glucose (N:n) and (N:n+1): one ChEBI, two entities; user, 2026-10-19), a dashed border
+    # glucose (N:n) and (N:n+1): one ChEBI, two entities), a dashed border
     # (hypothetical, a property of the CellDesigner species), and the units of information not drawn (the property
-    # Unit of information: two fragments of one protein, one identifier; user, 2026-10-29)
+    # Unit of information: two fragments of one protein, one identifier)
     cls = lambda i: (cd_class(N[i]), N[i].count) + tuple(re.findall(r'\(N:([^)]+)\)\s*$', label(N[i]))) + \
         (('hypothetical',) if N[i].dashed else ()) + tuple(sorted(hidden_units(N[i].data)))
     # identities: an identifier, or a label joining the one identifier it is given elsewhere

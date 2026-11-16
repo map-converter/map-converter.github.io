@@ -1,14 +1,14 @@
 # Which files each input gives, as on the Converter page, for the page, the command line and the
 # reference files alike. outputs() lists them; each file is made only when asked (made()).
 #   GraphML: CellDesigner in its four layouts (celldesigner.LAYOUTS: straight, straight & bends,
-#            advanced, as drawn; user, 2026-10-24); SBGN-ML, straight and advanced, also each for Newt
+#            advanced, as drawn); SBGN-ML, straight and advanced, also each for Newt
 #            (newt_layout); GraphML (corrected) for a map drawn
 #            with other shapes; GraphML (marked) when it breaks a rule (the problems left out)
 #   CellDesigner: GraphML and SBGN-ML, straight and advanced, SBGN-ML also each for Newt
 #   SBGN-ML, Newt: GraphML; CellDesigner in its four layouts
 #   CellDesigner, SBGN-ML, Newt: also GraphML (standard sizes) for a map drawn at another scale,
-#            or for every map when standard (style.standard; user, 2026-10-20)
-#   GraphML: GraphML (standard sizes) only when standard (user, 2026-10-22)
+#            or for every map when standard (style.standard)
+#   GraphML: GraphML (standard sizes) only when standard
 import contextlib, io
 from dataclasses import dataclass
 from . import annotation, celldesigner, graphml, report, rules, sbgnml, style
@@ -50,7 +50,7 @@ def standardised(read, program, asked):
 
 def outputs(path, standard=False):
     ext = path.lower().rsplit('.', 1)[-1]
-    # SBGN-ML straight and advanced, then each for Newt (user, 2026-10-21); read(layout) -> the map
+    # SBGN-ML straight and advanced, then each for Newt; read(layout) -> the map
     sbgn = lambda read: [Output('-%s%s.sbgn' % (l, '-newt' * n), 'SBGN-ML (%s%s)' % (l, ', for Newt' * n),
                                 lambda l=l, n=n: sbgnml.write(read(l), l, n)) for n in (False, True) for l in LAYOUTS]
     std = lambda read, program: Output('-standard.graphml', 'GraphML (standard sizes)', lambda: standardised(read, program, standard))

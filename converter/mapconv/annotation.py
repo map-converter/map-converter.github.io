@@ -59,16 +59,16 @@ def to_properties(family, uris):
 
 
 def units(p):
-    # the property Unit of information, one per line (user, 2026-10-29): what tells a form apart that the drawing
+    # the property Unit of information, one per line: what tells a form apart that the drawing
     # does not show (a cleavage fragment, "C-terminal fragment"), so the one unit CellDesigner draws stays free for N:x
     return [' '.join(x.split()) for x in (p.get('Unit of information') or '').splitlines() if x.strip()]
 
 
 def notes(p):
-    # what MIRIAM cannot hold, as note lines (user, 2026-10-22): a family's name ("Family: ERK1/2")
-    # and its members' sites ("MAPK3: P@T202 P@Y204"); the entity's own sites stay in PTM
+    # what MIRIAM cannot hold, as note lines: a family's name ("Family: ERK1/2")
+    # and its members' sites ('MAPK3: P@T202 P@Y204'); the entity's own sites stay in PTM
     lines = ['Family: ' + ' '.join(p['Family'].split())] if p.get('Family') else []
-    # units not drawn (user, 2026-10-29), on one line: CellDesigner keeps only the first line of a complex member's note
+    # units not drawn, on one line: CellDesigner keeps only the first line of a complex member's note
     lines += ['Unit of information: ' + '; '.join(units(p))] if units(p) else []
     for m in json.loads(p.get('Member annotation') or '[]'):
         ptm = ' '.join((dict(m['props']).get('PTM') or '').split())
@@ -95,7 +95,7 @@ def from_notes(text, p):
 
 
 
-# References on a process (user, 2026-10-27): the node property References, prefix:id separated by spaces
+# References on a process: the node property References, prefix:id separated by spaces
 # (pubmed:12456591 doi:10.1016/j.jaci.2020.12.155), as MINERVA maps hold them on the reaction (MIRIAM
 # isDescribedBy, one bag each); a bare number is a PMID, a bare 10.x a DOI.
 def references(text):

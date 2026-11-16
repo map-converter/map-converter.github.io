@@ -12,10 +12,10 @@ Y = '{%s}' % NS['y']
 HEAD = {'white_circle': 'catalysis', 't_shape': 'inhibition', 'white_diamond': 'modulation',
         'white_delta': 'stimulation', 'white_delta_bar': 'trigger',
         'crows_foot_one': 'inhibition'}  # a bar like t_shape, from yEd's other arrows (AsthMap)
-# plain yEd shapes (not the SBGN palette) read by their outline (user, 2026-10-16; AsthMap):
+# plain yEd shapes (not the SBGN palette) read by their outline (AsthMap):
 # a plain ellipse holding other nodes is an oval compartment (a cell), one labelled AND, OR or
 # NOT a logic gate
-# yEd's SBGN palette has no omitted or uncertain process: a Process labelled \\ or ? (user's example)
+# yEd's SBGN palette has no omitted or uncertain process: a Process labelled \\ or ?
 PROCESS_LABEL = {'\\\\': 'OmittedProcess', '?': 'UncertainProcess'}
 OUTLINE = {'ShapeNode roundrectangle': 'Macromolecule', 'GenericNode com.yworks.flowchart.terminator': 'SimpleChemical',
            'ShapeNode ellipse': 'UnspecifiedEntity', 'ShapeNode rectangle': 'Phenotype', 'ShapeNode hexagon': 'Phenotype'}
@@ -125,9 +125,9 @@ def read(path):
                          if (x.text or '').strip()), None)
         if kind == 'Process' and l is not None:
             kind = PROCESS_LABEL.get(l.text.strip(), kind)
-        if kind == 'Submap':  # our maps' phenotype, as in CellDesigner (user, 2026-10-21: SREBP's two submap glyphs)
+        if kind == 'Submap':  # the atlas maps' phenotype, as in CellDesigner (SREBP's two submap glyphs)
             kind = 'Phenotype'
-        agent = kind == 'PerturbingAgent'   # yEd's own glyph: our maps' phenotype, its SBGN class kept (2026-11-14)
+        agent = kind == 'PerturbingAgent'   # yEd's own glyph: the atlas maps' phenotype, its SBGN class kept
         if agent:
             kind = 'Phenotype'
         outline = kind if kind in OUTLINE else None
@@ -145,7 +145,7 @@ def read(path):
             data={names[x.get('key')]: x.text.strip() for x in n.findall('g:data', NS)
                   if x.get('key') in names and (x.text or '').strip()},
             dashed=border is not None and border.get('type') != 'line',
-            font=float(l.get('fontSize')) if l is not None and l.get('fontSize') else None,  # kept on conversion (user, 2026-10-28)
+            font=float(l.get('fontSize')) if l is not None and l.get('fontSize') else None,  # kept on conversion
             small=next((float(f) for f in map(small, labs[1:]) if f), None))
         cls = nodes[n.get('id')].data
         if agent:
@@ -173,12 +173,12 @@ def read(path):
     return Map(name=os.path.basename(path).rsplit('.', 1)[0], nodes=nodes, arcs=arcs)
 
 
-# --- writing: every element is a copy of a template cut from our yEd files (yed.graphml)
+# --- writing: every element is a copy of a template cut from the atlas yEd files (yed.graphml)
 G = '{%s}' % NS['g']
 ARROW = {v: k for k, v in HEAD.items() if k != 'crows_foot_one'}  # AsthMap's bar is read, never written
 ARROW['production'] = 'delta'
-EQUIV = '≡'  # the equivalence operator's label in yEd's SBGN palette (user's file, 2026-10-17)
-DELAY = 'τ'  # Activity Flow's delay: an Operator labelled tau, drawn as the equivalence (user, 2026-10-17)
+EQUIV = '≡'  # the equivalence operator's label in yEd's SBGN palette
+DELAY = 'τ'  # Activity Flow's delay: an Operator labelled tau, drawn as the equivalence
 
 
 def without_delays(m, form):
@@ -196,13 +196,13 @@ def without_delays(m, form):
     return replace(m, nodes={i: d for i, d in m.nodes.items() if i not in ds}, arcs=arcs)
 
 
-LINE, CHAR = 16.5, 9.5  # a label line's height and a character's width at font size 14 (our maps)
+LINE, CHAR = 16.5, 9.5  # a label line's height and a character's width at font size 14 (the atlas maps)
 ICON_CHAR = 5.4  # a character's width in a state variable or unit of information (Dialog 10)
 
 
 def _label(l, text, w, h, k=1.0):
     # the label's text, its box estimated and centred (yEd measures it again when the text is edited);
-    # k: the font size against our 14
+    # k: the font size against the standard 14
     lines = text.split('\n') if text else []
     lw, lh = max([len(x) for x in lines] or [0]) * CHAR * k, len(lines) * LINE * k + 4
     l.text = text or None
@@ -213,12 +213,12 @@ def _label(l, text, w, h, k=1.0):
 
 def corrected(m):
     # a map that looks like SBGN but is drawn with other shapes (read by their outline), redrawn
-    # with the SBGN palette (user, 2026-10-17: <map>-corrected.graphml); None for a map already in it
+    # with the SBGN palette (<map>-corrected.graphml); None for a map already in it
     return write(m, soft=True) if any(d.outline for d in m.nodes.values()) else None
 
 
 def write(diagram, soft=False):
-    # the font follows the map's scale: 14 on our protein height (40), so Newt's 30 high gives 11
+    # the font follows the map's scale: 14 on the standard protein height (40), so Newt's 30 high gives 11
     font = round(14 * scale_of(diagram) + 0.01)
     t = etree.parse(os.path.join(os.path.dirname(__file__), 'yed.graphml')).getroot()
     tpl = {n.get('id'): n for n in t.iter(G + 'node')}
@@ -238,9 +238,9 @@ def write(diagram, soft=False):
         if (kind, text, small) not in rid:
             r = copy.deepcopy(res_tpl[kind]); rid[kind, text, small] = str(len(rid) + 1); r.set('id', rid[kind, text, small])
             gn = r.find('.//y:GenericNode', NS)
-            # as in our maps (user, 2026-10-22): a state variable of up to two letters an 18 x 18 circle,
+            # as in the atlas maps: a state variable of up to two letters an 18 x 18 circle,
             # a longer one a capsule 18 high, a unit of information 16 high; text 10, centred. Another
-            # size from the source (user, 2026-10-28) kept, the icon grown or shrunk with it
+            # size from the source kept, the icon grown or shrunk with it
             k = (small or 10) / 10
             if kind == 'StateVariable':
                 w, h = (18.0 * k, 18.0 * k) if len(text) <= 2 else (float(math.ceil(len(text) * ICON_CHAR * k + 12 * k)), 18.0 * k)
@@ -263,11 +263,11 @@ def write(diagram, soft=False):
         d = N[i]
         group = bool(kids.get(i)) or d.kind == 'Compartment'
         name = 'ComplexGroup' if group and d.kind == 'Complex' else 'Process' if d.kind in PROCESS_LABEL.values() else d.kind
-        if name not in tpl:  # a glyph none of our yEd files has: no template to copy
+        if name not in tpl:  # a glyph none of the atlas yEd files has: no template to copy
             missing.setdefault(d.kind, []).append(i); return
         n = copy.deepcopy(tpl[name])
         n.set('id', i)
-        if d.kind == 'Phenotype' and d.data.get('SBGN class') in ('perturbing agent', 'perturbation'):  # yEd's own glyph for it (2026-11-14; AF's perturbation 2026-11-15)
+        if d.kind == 'Phenotype' and d.data.get('SBGN class') in ('perturbing agent', 'perturbation'):  # yEd's own glyph for it (AF's perturbation too)
             realizer(n).set('configuration', 'com.yworks.sbgn.PerturbingAgent')
         parent.append(n)
         for k, name in enumerate(names):
@@ -286,7 +286,7 @@ def write(diagram, soft=False):
         if not d.border: gn.find('y:BorderStyle', NS).set('hasColor', 'false')
         l = gn.find('y:NodeLabel', NS)
         sign = {v: k for k, v in PROCESS_LABEL.items()}.get(d.kind)
-        fs = d.font or font  # the source's own size (CellDesigner, Newt; user, 2026-10-28), else the map's
+        fs = d.font or font  # the source's own size (CellDesigner, Newt), else the map's
         if not sign and (d.font or font != 14):
             l.set('fontSize', '%g' % fs)
         _label(l, sign or next((x for x in d.labels if x), ''), w, h, fs / 14)  # the name; a second label is a unit (N:4)
@@ -296,10 +296,10 @@ def write(diagram, soft=False):
             lx, ly = d.label_at or (float(l.get('x')), 0.0)
             l.set('x', repr(float(lx))); l.set('y', repr(float(ly)))
             if d.label_at:  # yEd and yrender place an internal label by its side and one distance from the border:
-                # the side by the third its middle stands in, the distance its own from the top (2026-11-14; its exact
-                # left or right edge is approximate, the label's width being our estimate); centred when it does not fit.
-                # A name whose middle lies in the lower half sits at the bottom, its distance from the bottom (2026-11-16:
-                # six places for a compartment's name, top or bottom, left, middle or right)
+                # the side by the third its middle stands in, the distance its own from the top (its exact
+                # left or right edge is approximate, the label's width being an estimate); centred when it does not fit.
+                # A name whose middle lies in the lower half sits at the bottom, its distance from the bottom
+                # (six places for a compartment's name, top or bottom, left, middle or right)
                 lw, lh = float(l.get('width')), float(l.get('height'))
                 low = float(ly) + lh / 2 > h / 2
                 bd = max(0.0, h - float(ly) - lh if low else float(ly))
@@ -310,7 +310,7 @@ def write(diagram, soft=False):
         for c in n.findall('g:data/y:ProxyAutoBoundsNode/y:Realizers/*', NS)[1:]:  # folded in yEd: its own name, not the template's
             c.find('y:NodeLabel', NS).text = l.text
             c.find('y:NodeLabel', NS).set('fontSize', l.get('fontSize'))
-        if group and d.kind == 'Complex':  # a complex's name at the bottom, as CellDesigner draws it (user, 2026-10-25)
+        if group and d.kind == 'Complex':  # a complex's name at the bottom, as CellDesigner draws it
             l.set('modelPosition', 'b'); l.set('borderDistance', '0.0'); l.set('y', repr(h - float(l.get('height'))))
         if d.count > 1:  # yEd draws a multimer as two shapes; N:x says how many
             sp = gn.find('y:StyleProperties', NS)
@@ -353,7 +353,7 @@ def write(diagram, soft=False):
         if a.dashed: pl.find('y:LineStyle', NS).set('type', 'dashed')
         pl.find('y:Arrows', NS).set('target', ARROW[a.head] if a.head else 'none')
         pl.find('y:Arrows', NS).set('source', 'delta' if a.tail else 'none')
-        if soft:  # soft bends on a map from yEd (user, 2026-10-14); from CellDesigner or Newt as they draw them, sharp (user, 2026-10-28)
+        if soft:  # soft bends on a map from yEd; from CellDesigner or Newt as they draw them, sharp
             pl.find('y:BendStyle', NS).set('smoothed', 'true')
         g.append(e)
     rs = etree.SubElement(etree.SubElement(root, G + 'data', key='res'), Y + 'Resources')

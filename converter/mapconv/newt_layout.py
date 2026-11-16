@@ -1,5 +1,5 @@
-# The Newt adapter (restructuring step 4, 2026-10-19): what an SBGN-ML map needs so Newt draws it as
-# the source does, kept apart from the SBGN-ML itself (user, 2026-10-21: the "for Newt" files). Every
+# The Newt adapter: what an SBGN-ML map needs so Newt draws it as
+# the source does, kept apart from the SBGN-ML itself (the "for Newt" files). Every
 # process and gate in a compartment, each compartment as large as Newt's padding needs, neighbours
 # too close for it moved apart (adjust); arcs drawn as Newt aims them (leaving, unaimed; SBGNML.md).
 import math
@@ -28,7 +28,7 @@ def leaving(d, p, q, at_border, gap=3):
 
 def unaimed(pts, a, b):
     # the bends without those on or near (5 px) the line from where Newt aims the ends (a port, else
-    # the node's centre): Newt loses an arc with two bends in one place (iNOS, IRF1 mRNA; 2026-10-18)
+    # the node's centre): Newt loses an arc with two bends in one place (iNOS, IRF1 mRNA)
     return unbent([a] + pts + [b], 5)[1:-1]
 
 
@@ -36,7 +36,7 @@ def placed(diagram):
     # a process or gate outside any compartment put into the smallest one its centre lies in, else
     # into its first neighbour's, as Newt does (Newt puts it in a neighbour's and grows that
     # compartment over the others: iNOS, the transports across the plasma membrane; carnitine,
-    # LKB1 out of the nucleus; user, 2026-10-18)
+    # LKB1 out of the nucleus)
     N = diagram.nodes
     for d in N.values():
         if d.kind in ('Operator',) + PROCESSES and compartment_of(N, d.id) is None:
@@ -49,21 +49,21 @@ def placed(diagram):
 
 
 # Newt (sbgnml-to-cytoscape bboxProp): a compartment's padding, 24 (its 14 and the compound 10),
-# with half a border and 1, 30 to be safe. Measured in Newt (2026-10-22, docs/QUALITY.md): it keeps a
+# with half a border and 1, 30 to be safe. Measured in Newt (docs/QUALITY.md): it keeps a
 # compartment from 28 px around a node or a complex (no padding of the complex's own), 28 around a
 # process without ports and about 40 with them (PORTS), and never grows one for a compartment inside it
 NEWT_PAD, PORTS = 30, 12
 
 
 def for_newt(diagram, ports=True):
-    # compartments as Newt keeps them (user, 2026-10-18): Newt keeps a compartment's box only when
+    # compartments as Newt keeps them: Newt keeps a compartment's box only when
     # its contents (state variables, units, a complex's padding, a process's port stubs) stay
     # NEWT_PAD inside every edge, else it wraps the contents and edges aligned in the source drift
     # apart or overlap. Each box is widened as its contents need; edges aligned in the source (within
     # 2 px) move together. Where two neighbours' contents are too close across their shared edge,
     # everything past that edge moves on by what is missing, so the edges stay aligned (printed).
     # Compartments side by side keep the gap the source has between them, up to NEWT_PAD (platelet
-    # eicosanoids: 2.7 px apart in yEd, CYTOSOL grew into DENSE TUBULAR SYSTEM; user, 2026-10-19)
+    # eicosanoids: 2.7 px apart in yEd, CYTOSOL grew into DENSE TUBULAR SYSTEM)
     N = diagram.nodes
     comps = [c for c, d in N.items() if d.kind == 'Compartment']
     value = lambda c, k: N[c].box[k % 2] + (N[c].box[2 + k % 2] if k > 1 else 0)
@@ -74,7 +74,7 @@ def for_newt(diagram, ports=True):
               and min(value(a, 3 - ax), value(b, 3 - ax)) - max(value(a, 1 - ax), value(b, 1 - ax)) > 0.5]
     # a node outside every compartment that a compartment, once in place, grows over by more than
     # half is covered whole, so the edge does not stop inside it (SREBP from CellDesigner, straight:
-    # the COPII vesicle grew to its process and cut the Sec23:Sec24 complex; user, 2026-10-20); one
+    # the COPII vesicle grew to its process and cut the Sec23:Sec24 complex); one
     # the growth only grazes, or the source draws across the edge, stays as it is
     free = [i for i, d in N.items() if d.kind != 'Compartment' and d.parent is None and compartment_of(N, i) is None]
     covered = {}
