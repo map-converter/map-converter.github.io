@@ -1,0 +1,8 @@
+# The Converter's own menu, shown under the site's name, subtitle and logo.
+converter:
+  plain: true
+  nav:
+    - {label: "Converter", url: "/converter/"}
+    - {label: "Description", url: "/converter/description/"}
+    - {label: "Architecture", url: "/converter/architecture/"}
+    - {label: "Documentation", url: "/converter/docs/", under: true}
