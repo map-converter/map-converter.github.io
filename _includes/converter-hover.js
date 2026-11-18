@@ -1,16 +1,15 @@
   // the buttons' hover texts, on /converter/: a button with
   // only its main word says what its file holds, a button with more words says what each adds, one
-  // line per word ("plain: ..."), then the file's name
+  // line per word ("straight: ..."), then the file's name
   const HOVER_MAIN = {
     'CellDesigner': 'Process glyphs, bends and modifier arcs where the input map has them. A few nodes moved slightly so that lines meet straight, listed under the map.',
     'GraphML from CellDesigner': 'Node sizes as in CellDesigner, arcs at its connection points, modifier arcs ending beside the process glyph.',
     'GraphML from SBGN-ML': 'Node positions, sizes and bends as in the SBGN-ML file.',
-    'SBGN-ML': 'Compartments enlarged and moved apart, so that Newt keeps them as drawn.',
+    'SBGN-ML': 'The drawing of the input map kept: bends, ports, compartments as drawn; processes and logic gates with their antennas.',
     'Open in Newt': 'Opens the file in Newt, in a new tab.',
   };
   const HOVER_WORD = {
     'newt-adjusted': 'newt-adjusted: compartments enlarged and moved apart, so that Newt keeps them as drawn.',
-    'plain': 'plain: compartments as drawn, not adjusted for any tool.',
     'straight': 'straight: every arc a straight line between node centres.',
     'straight & bends': 'straight & bends: straight lines with the key bends of the input map, no node moved.',
     'as drawn': 'as drawn: every node and process glyph where the input map has it, held by extra edit points.',
@@ -18,7 +17,7 @@
     'corrected': 'corrected: the map redrawn in the SBGN palette, its shapes recognised by their outline.',
     'marked': 'marked: the elements that break the SBGN rules drawn red. yEd shows the reason on hover.',
   };
-  // format and variant as on the button ("SBGN-ML", "plain, straight"), the dropped file's name,
+  // format and variant as on the button ("CellDesigner", "straight"), the dropped file's name,
   // the file's name
   function hover(format, variant, input, name) {
     const words = variant ? variant.split(', ') : [];

@@ -15,12 +15,13 @@ messages what it changed or left out. It runs in the browser on the
 
 | Input | Outputs |
 |---|---|
-| yEd GraphML | CellDesigner, SBGN-ML (plain and for Newt), each in two layouts |
-| CellDesigner | GraphML, SBGN-ML (plain and for Newt), each in two layouts |
+| yEd GraphML | CellDesigner in two layouts, SBGN-ML (plain and for Newt) |
+| CellDesigner | GraphML in two layouts, SBGN-ML (plain and for Newt) |
 | SBGN-ML, Newt | GraphML, CellDesigner in two layouts |
 
 Two layouts: advanced, the drawing of the input map kept, is the recommended file. Straight line, every
-arc straight from centre to centre, is a fallback for laying out by hand.
+arc straight from centre to centre, is a fallback for laying out by hand. SBGN-ML has one layout, the drawing of the
+input map kept; the file for Newt is adjusted so that Newt keeps it as drawn.
 
 ## This documentation
 
