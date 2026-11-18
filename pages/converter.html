@@ -32,8 +32,7 @@ noindex: true
   }
   /* the name level with the top of the buttons, the notes right under it */
   .cv-name { font-size: 14px; line-height: 20px; font-weight: 600; overflow-wrap: anywhere; }
-  /* one column per format, the blue button on top and its straight line file under it, the same
-     for Newt. Other variants below */
+  /* one column per format, the blue button on top and its fallback under it. Other variants below */
   .cv-col { display: flex; flex-direction: column; gap: 6px; }
   /* a larger gap before the Open in Newt buttons, so the downloads and the opening read as two groups */
   .cv-col .cv-open-first { margin-top: 8px; }
@@ -81,7 +80,7 @@ noindex: true
   </div>
   <div>
     <p class="cv-hint cv-group">Convert <button type="button" class="cv-i" aria-label="More information" aria-expanded="false"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6"/><path d="M12 7.5v.01" stroke-width="2.6"/></svg></button></p>
-    <span class="cv-info" hidden>GraphML ⭤ CellDesigner: to CellDesigner a few nodes move up to 15 px so that lines meet straight, each move listed under the map. Complexes grow to fit their names, multimers are drawn as dimers with N:x. Back to GraphML the CellDesigner drawing is kept.<br>GraphML ⭤ SBGN-ML: the blue file is adjusted for Newt: compartments enlarged to Newt's margin, nodes too close for it moved apart and listed. The plain file keeps the compartments as drawn.<br>SBGN-ML ⭤ CellDesigner: the same adjustments as above, each way.<br>A GraphML map is checked first: elements that break the SBGN rules are left out, listed in red under the map and drawn red in GraphML (marked).</span>
+    <span class="cv-info" hidden>GraphML ⭤ CellDesigner: to CellDesigner a few nodes move up to 15 px so that lines meet straight, each move listed under the map. Complexes grow to fit their names, multimers are drawn as dimers with N:x. Back to GraphML the CellDesigner drawing is kept.<br>GraphML ⭤ SBGN-ML: the blue file keeps the drawing, processes and logic gates with their antennas. The newt-adjusted file has its compartments enlarged to Newt's margin, nodes too close for it moved apart and listed.<br>SBGN-ML ⭤ CellDesigner: the same adjustments as above, each way.<br>A GraphML map is checked first: elements that break the SBGN rules are left out, listed in red under the map and drawn red in GraphML (marked).</span>
     <p class="cv-routes cv-hint"><label class="cv-hint"><input type="checkbox" value="graphml xml" checked> GraphML ⭤ CellDesigner</label><br>
     <label class="cv-hint"><input type="checkbox" value="graphml sbgn" checked> GraphML ⭤ SBGN-ML</label><br>
     <label class="cv-hint"><input type="checkbox" value="sbgn xml" checked> SBGN-ML ⭤ CellDesigner</label></p>
@@ -150,12 +149,9 @@ def convert(name, data, standard=False, skipped=()):
         else:
             log = ''.join(m + '\\n' for k, m in said if k != 'summary')
         # the layout that keeps the drawing is the plain file, "CellDesigner", <map>.xml; straight the
-        # variant, "straight" on its button (the converter's own names
-        # stay). SBGN-ML: "newt-adjusted" (blue, <map>-newt.sbgn) and "plain" (<map>.sbgn), each also with "straight"
-        # on a third line of the button
-        label = {'SBGN-ML (advanced, for Newt)': 'SBGN-ML (newt-adjusted)', 'SBGN-ML (straight, for Newt)': 'SBGN-ML (newt-adjusted, straight)',
-                 'SBGN-ML (advanced)': 'SBGN-ML (plain)', 'SBGN-ML (straight)': 'SBGN-ML (plain, straight)'}.get(o.label) or \
-                o.label.replace(' (advanced)', '')
+        # variant, "straight" on its button (the converter's own names stay). SBGN-ML: <map>.sbgn (blue)
+        # and "newt-adjusted", <map>-newt.sbgn
+        label = 'SBGN-ML (newt-adjusted)' if o.label == 'SBGN-ML (for Newt)' else o.label.replace(' (advanced)', '')
         files.append([end, label, text, log, o.red, preview(o.ending, text), i])
     return [files, endings]
 `;
@@ -215,20 +211,18 @@ def convert(name, data, standard=False, skipped=()):
 {% include converter-hover.js %}
 {% include newt-open.js %}
 
-  // a column's buttons: the blue one on top (no variant, or SBGN-ML newt-adjusted), its straight line file
-  // under it, the others below. SBGN-ML plain in a column of its own, right of
-  // SBGN-ML newt-adjusted (four in a column are too many). The Open in Newt buttons at the
-  // end of their SBGN-ML files' column
+  // a column's buttons: the blue one on top (no variant), its fallback (straight, SBGN-ML newt-adjusted)
+  // under it, the others below. The Open in Newt buttons at the end of the SBGN-ML column
   // CellDesigner: the blue one, then straight, straight & bends, as drawn
-  const rank = variant => !variant || variant === 'newt-adjusted' || variant === 'plain' ? 0 : /straight$/.test(variant) ? 1 : variant === 'straight & bends' ? 2 : 3;
-  const column = (format, variant) => (format === 'Open in Newt' ? 'SBGN-ML' : format) + (/^plain/.test(variant || '') ? ' plain' : '');
+  const rank = variant => !variant ? 0 : /straight$/.test(variant) || variant === 'newt-adjusted' ? 1 : variant === 'straight & bends' ? 2 : 3;
+  const column = format => format === 'Open in Newt' ? 'SBGN-ML' : format;
   const variantOf = b => [...b.querySelectorAll('.cv-variant')].map(v => v.textContent).join(', ');
 
   // the buttons in their columns, in the order they came, ranked as above
   function arrange(box) {
     const cols = new Map();
     for (const b of box.querySelectorAll('a.cv-btn')) {
-      const k = column(b.querySelector('.cv-lines').firstChild.textContent, variantOf(b));
+      const k = column(b.querySelector('.cv-lines').firstChild.textContent);
       if (!cols.has(k)) cols.set(k, []);
       cols.get(k).push(b);
     }
@@ -287,8 +281,7 @@ def convert(name, data, standard=False, skipped=()):
       // each format's buttons together, in their columns, ranked (the blue one first)
       const format = label => label.split(' (')[0], order = [...new Set(r.map(x => format(x[1])))];
       const variant = label => (label.match(/\((.*)\)$/) || [])[1];
-      const plain = label => /^plain/.test(variant(label) || '');
-      r.sort((a, b) => order.indexOf(format(a[1])) - order.indexOf(format(b[1])) || plain(a[1]) - plain(b[1]) || rank(variant(a[1])) - rank(variant(b[1])));
+      r.sort((a, b) => order.indexOf(format(a[1])) - order.indexOf(format(b[1])) || rank(variant(a[1])) - rank(variant(b[1])));
       const box = document.createElement('div'); box.className = 'cv-map';
       box.insertAdjacentHTML('beforeend', '<div class="cv-left"><div class="cv-name"></div></div>');
       box.file = f; box.made = made; box.all = all;
@@ -304,13 +297,12 @@ def convert(name, data, standard=False, skipped=()):
       // Newt: each SBGN-ML file, or an SBGN-ML or Newt input itself
       const newt = /\.(sbgn|nwt)$/i.test(f.name) ? [{ text: await f.text(), name: f.name }] : [];
       for (const [end, label, xml, log, red, preview] of r) {
-        // every SBGN-ML file, the plain ones too, to see what Newt makes of them
-        if (xml && end.endsWith('.sbgn')) newt.push({ text: xml, name: base + end,
-          variant: [end.endsWith('-newt.sbgn') ? '' : 'plain', end.startsWith('-straight') ? 'straight' : ''].filter(Boolean).join(', ') || undefined });
+        // every SBGN-ML file, the plain one too, to see what Newt makes of it
+        if (xml && end.endsWith('.sbgn')) newt.push({ text: xml, name: base + end, variant: end === '-newt.sbgn' ? 'newt-adjusted' : undefined });
         if (xml) {
           const b = button(xml, base + end, label, red, f.name, preview);
           if (end === '-corrected.graphml' || end === '-standard.graphml') b.classList.add('cv-grey');
-          if (end.startsWith('-straight') || end === '.sbgn' || end === '-bends.xml' || end === '-drawn.xml') b.classList.add('cv-alt');
+          if (end.startsWith('-straight') || end === '-newt.sbgn' || end === '-bends.xml' || end === '-drawn.xml') b.classList.add('cv-alt');
           box.append(b);
         }
         if (red) { problems.push(log); continue; }

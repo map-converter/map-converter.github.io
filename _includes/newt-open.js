@@ -27,7 +27,7 @@
     a.title = hover('Open in Newt', variant, '', name);
     const lines = document.createElement('span'); lines.className = 'cv-lines';
     lines.append('Open in Newt');
-    for (const t of variant ? variant.split(', ') : []) {  // "plain, straight line": a line each
+    for (const t of variant ? variant.split(', ') : []) {  // "newt-adjusted": a line each
       const v = document.createElement('span'); v.className = 'cv-variant'; v.textContent = t; lines.append(v);
     }
     a.append(lines);

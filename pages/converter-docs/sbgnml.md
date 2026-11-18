@@ -11,14 +11,14 @@ noindex: true
 17:20200016, doi:10.1515/jib-2020-0016), the exchange format Newt, MINERVA, CellDesigner and
 cd2sbgnml read. It writes from yEd GraphML and reads the way back.
 
-    python3 -m mapconv <map.graphml> <out.sbgn>
+    python3 -m mapconv <map.graphml|map.xml> <out.sbgn> [--newt]
     python3 -m mapconv <map.sbgn|map.nwt> <out.graphml|out.xml> [--standard]   (also <out>-standard.graphml for a map at another scale, or always with --standard)
 
 ## Rules
 
 - Glyphs: the yEd glyphs by name (`CLASS`); a multimer (yEd's mcount) is `<class> multimer`,
   its N:x a unit of information; EmptySet is `source and sink`; a gate is `and`, `or`, `not`
-  from its label; an arc leaving a phenotype is left out, the phenotype kept (see the way back).
+  from its label; an arc leaving a phenotype is kept, with a message (see the way back).
 - Complex members are child glyphs of the complex. An entity in a compartment gets its
   `compartmentRef` (the nearest compartment around it); compartments come first, drawn under
   the rest. A compartment's label keeps its place (label bbox from the yEd label), and its outline width
@@ -32,24 +32,18 @@ cd2sbgnml read. It writes from yEd GraphML and reads the way back.
   nearer port.
 - Arcs in SBGN's direction: a consumption from the entity to port 1 (yEd maps also draw it
   from the process), a logic arc from the entity into its gate, products from port 2, a
-  modifier to the process glyph. `trigger` is `necessary stimulation`. Bends are `next`
+  modifier to the process glyph. An arc that meets a process from the side (more than 45 degrees off its antenna)
+  turns at the antenna's tip; one message per file lists them. `trigger` is `necessary stimulation`. Bends are `next`
   points; an end at a port is the port, a yEd port is its own point, any other end is where
   the line meets the node's box.
-- A bend on or near (5 px) the straight line between its neighbours is left out: it draws nothing.
-- Two layouts, as for CellDesigner: `straight`, every arc straight from centre
-  to centre (no bends, no yEd ports, no process ports), simple and reliable, improved by hand in
-  Newt; `advanced`, the drawing of the source kept, except the arcs of logic gates, straight in both
-  (yEd's bend where the inputs meet lies past the gate's port). From CellDesigner, straight puts each process midway between
-  its main reactant and product (`celldesigner.straight`: in CellDesigner the bends placed the
-  process glyph), the gates where CellDesigner has them; advanced reads CellDesigner's own geometry
-  (`celldesigner.read(path)`).
-- Every bend in the plain advanced file, so the SBGN-ML draws as the GraphML, only a bend
-  exactly on the line between its neighbours left out. For Newt and in straight:
-- Key bends only: a bend stays if leaving it out moves the line by more than
+- The drawing of the source kept: every bend, an arc's end at a yEd port at that port, a logic gate's arcs with their
+  bends. Left out only: a bend exactly on the line between its neighbours (it draws nothing), and a bend within 20 px
+  of a process's or gate's box that lies at or behind its antenna's tip (it drew the antenna, or the turn of a gate's
+  inputs, which the antenna now draws). A bend past the tip is a corner of the line and stays.
+- From CellDesigner, the same, from CellDesigner's own geometry (`celldesigner.read(path)`).
+- For Newt, key bends only: a bend stays if leaving it out moves the line by more than
   20 px (`layout.bends`, as for CellDesigner), or the line without it runs through a node it does not
-  run through now; then those within 5 px of the line through their neighbours go. Straight: an
-  arc that shares its two ends with another keeps its bends (two straight arcs between the same
-  glyphs would lie on each other; Newt curves them apart).
+  run through now; then those within 5 px of the line through their neighbours go.
 - A CellDesigner homodimer gets its N:x unit, N:2 included, as on every multimer of the yEd maps,
   so CellDesigner -> SBGN-ML and GraphML -> SBGN-ML of the
   same map agree. It goes into the GraphML from CellDesigner too.
@@ -64,8 +58,8 @@ cd2sbgnml read. It writes from yEd GraphML and reads the way back.
 
 ### For Newt
 
-Each SBGN-ML file also comes adjusted for Newt ("SBGN-ML (for Newt)",
-`<map>-newt.sbgn`; `-straight-newt.sbgn`; `--newt`; the Converter's Newt buttons open these), made
+The SBGN-ML file also comes adjusted for Newt ("SBGN-ML (for Newt)",
+`<map>-newt.sbgn`; `--newt`), made
 by the Newt adapter `newt_layout.py`: `sbgnml.write(..., newt=True)` runs `adjust` on the map and
 draws the arcs as Newt aims them. The plain file is the SBGN-ML of the source, its compartments
 as drawn: Newt draws a compartment about 12 px larger on every side than its bbox (its compound
@@ -98,8 +92,8 @@ padding), so compartments that touch or stand close in yEd overlap there (estrog
   before the boxes are fitted. A node outside every compartment that a
   compartment, once in place, grows over by more than half is covered whole, with the padding, so the
   edge does not stop inside it; one the growth only grazes, or the source draws across the edge,
-  stays as it is (SREBP straight: the COPII vesicle grew to its process and its edge
-  cut the Sec23:Sec24 complex; advanced covered it by its larger process margin). Checked by loading every map in Newt and
+  stays as it is (SREBP: the COPII vesicle grew to its process and its edge
+  would cut the Sec23:Sec24 complex). Checked by loading every map in Newt and
   comparing its compartments with the file's.
 
 ## The way back: SBGN-ML -> map model
@@ -143,10 +137,10 @@ then write it. Examples: the converter's own SBGN-ML of every test map, and file
   phenotype, as CellDesigner has (PHENOTYPE), which also stands for a submap. A perturbing agent is
   read as a phenotype, and so is yEd's Submap glyph (SREBP's "Transcription of target
   genes" and "Cholesterol biosynthesis": the palette offers the glyph, the
-  map means a phenotype). Written to SBGN-ML, an arc leaving a phenotype is left out and printed: an
-  SBGN phenotype takes no outgoing arc, and whether it is a perturbing agent, a submap or neither is
-  not guessed. The phenotype stays, with the arcs into it (so SREBP
-  from CellDesigner keeps "Transcription of target genes" and SREBP2's stimulation of it).
+  map means a phenotype). Written to SBGN-ML, an arc leaving a phenotype is kept and printed: an
+  SBGN phenotype takes no outgoing arc, so libsbgn's PD rules flag it, and whether the glyph is a perturbing agent,
+  a submap or neither is not guessed. The phenotype stays a phenotype, with every arc (SREBP keeps "Transcription of
+  target genes", SREBP2's stimulation of it and its arc to "Cholesterol biosynthesis").
 
 ### Activity Flow (read only)
 
