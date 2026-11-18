@@ -151,6 +151,11 @@ MINERVA (glycolysis v01).
   width is stored as a float (107.45129863291555 -> 107.45130157470703);
   extra reactant and product links get a `connectScheme` (direct, one line
   direction "unknown") between `linkAnchor` and `line`.
+- Learned from three round trips of the viewer's editor files through CellDesigner 4.4.2: in a complex member's
+  notes the RDF comes one element per line, also after the family's name; a species' notes text ends with a line
+  break before `</body>`; `listOfCatalyzedReactions` follows the order of the reactions in the file. Left as they are:
+  a modifier's bend point fraction (CellDesigner recomputes it and may change its last digit) and a gate input's two
+  forms (CellDesigner writes both itself).
 - Names: commas stay as they are (no `_comma_`; MINERVA does not decode it,
   the old files keep the comma).
 
