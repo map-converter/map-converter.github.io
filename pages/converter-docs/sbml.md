@@ -89,4 +89,35 @@ of one map look the same. The meaning is the map's biology, as the other formats
   SBMLNetwork draws them. Read back, each CellDesigner reference map keeps its entities and reactions within the limits
   above (tests/test_sbml_write.py).
 
+## SBML-qual
+
+`mapconv/sbml.write_qual` writes an Activity Flow map (from SBGN-ML, Newt or GraphML) as SBML Level 3 Version 1 with
+the qual package: its Boolean model, runnable in the logical modelling tools (bioLQM, GINsim, MaBoSS through bioLQM,
+CellCollective), with its drawing in Layout and Render (the button SBML-qual on the Converter page, or
+`python3 -m mapconv <map> <out.sbml> --qual`). A map with process glyphs (Process Description) gives none, as its Boolean
+model comes from its Activity Flow, and so does a map with no influence between its nodes.
+
+- Nodes: one qualitative species per activity (glyphs that draw one activity are one node), Boolean (maxLevel 1), with
+  the activity's identifiers. A node with no influence in is an input: constant, its level set for each run.
+- Rules: one transition per node with influences in. The node is on when any positive influence is on, every necessary
+  stimulation is on and no negative influence is on. A node with negative influences only is on unless one of them is.
+  Logic gates as drawn: AND, OR, NOT, and gates on gates. Every line into a gate is one of its inputs, whatever its
+  head, and a plain line out of a gate a positive influence. A NOT gate with several inputs reads as NOT of their OR,
+  and is said. A delay becomes a node of its own that copies its input, and the influence it carries reads that node.
+  An unknown influence is drawn and listed as an input of sign unknown, but is not in the rule, and is said. A node
+  whose only influences are unknown keeps its level, as an input does. Each transition's notes give its rule in the
+  .bnet notation. A gate without an input, and lines that carry no rule (to or from a compartment), are left out and
+  said.
+- What a run needs beyond the file: the inputs' levels and the updating (synchronous, asynchronous), which SBML-qual
+  leaves to the tool.
+- Drawing: each activity and each gate a general glyph with its box (an activity's names its qualitative species, as
+  CaSQ and bioLQM write them), each transition a general glyph whose reference glyphs are its lines as drawn, bends
+  included, from the activity or gate they leave. Render as for SBML, with Activity Flow's heads. Tools that read only
+  the boxes (bioLQM, GINsim) place the nodes as drawn. The lines are read by readers of general glyphs: this converter
+  reads them back as drawn, gates included, each line to the glyph its curve ends at among the transition's outputs
+  and the gates.
+- Checked: every Activity Flow reference map writes a file libSBML reads without an error and bioLQM loads; the PGE2
+  loop's 26 rules are those of the Activity Flow to Boolean rules applied by hand (tests/test_sbml_qual.py); read back,
+  the TGF-beta and PGE2 maps keep every line and gate.
+
 {% endraw %}
