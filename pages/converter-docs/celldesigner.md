@@ -661,12 +661,20 @@ ports. Points of an arc that leaves a node and crosses it again are
 seen in CellDesigner and kept. Measured on 97 CellDesigner files (official, PD map, AsthmaMap,
 ACSN): 1186 of 18509 edit points left out, inside an end node 1151 -> 10.
 
-## Free-text units of information
+## Units of information: CellDesigner's prefixes and free text
+
+CellDesigner 4.4.2's Edit Information window offers five prefixes: pc with the labels T, V and pH;
+mt with ion, rad, rna, dna, prot and psac; ct with gene, tss, coding, grr and mRNA; N with any label;
+and "free input" with any text. The file holds the choice as prefix and label,
+`<celldesigner:info state="open" prefix="mt" label="prot" angle="..."/>`. The writer gives a unit
+written pc:, mt: or ct: with one of that prefix's own labels (in any case) that prefix and label,
+spelled as CellDesigner spells them (ct:mrna as ct and mRNA); N:x (or n:x) prefix N and the label
+x; every other text, a label its prefix lacks included (ct:asRNA), the free-text form below.
 
 CellDesigner saves a unit of information with free text on the species alias as
 `<celldesigner:info state="open" prefix="free input" label="exampletext" angle="..."/>`
 (`tests/celldesigner/free-text-unit.xml`, saved in CellDesigner), the same element as ct:gene with
-another prefix. The writer gives every unit other than ct: and N:x this form (SREBP "precursor",
+another prefix. The writer gives every other unit this form (SREBP "precursor",
 "processed form", "mature form"); the reader takes the
 label alone. One info per alias: a node with more units keeps a ct: unit first, the rest is
 reported left out. CellDesigner shows the label alone ("example..." cut to the box); MINERVA (22.0.1)
