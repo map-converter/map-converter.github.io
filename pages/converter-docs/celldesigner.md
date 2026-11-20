@@ -552,7 +552,10 @@ Differences in the converter from the script:
   ("n1::n38: the arc from α-ketoisocaproate runs through PPM1K:Mn2+"), to be moved by hand in
   CellDesigner (the BCAA check moved PPM1K:Mn2+ 36 px right).
 - Lanes leaving a metabolite: see "Metabolite circles: where lines meet them".
-BCAA: identical to v04 except the 20 px move of PPM1K:Mn2+ (process glyphs, edit points, line directions compared).
+- A modifier arc with no bend that starts off its node's centre takes the nearest of the node's 16 places,
+  not a point 1 px outside the node: such a point stays behind when the node is moved in CellDesigner.
+BCAA: as v04 except the 20 px move of PPM1K:Mn2+ and its modifiers leaving off their centres, which start at
+a place (six edit points fewer).
 
 ## Metabolite circles: where lines meet them (advanced)
 
@@ -600,11 +603,12 @@ Geometry of a main line:
   hand edit of CAD put them about 0.6 of that way). On the line, so CellDesigner draws nothing more. Else midway (CellDesigner's own
   rule). 3 px: the yEd offsets run on without a gap (0-5 px 23 processes, 5-10 px 39, of 168 placed on
   the 28 Atlas maps), and below 3 px two points per reaction would add clutter for nothing seen.
-- A main line yEd draws level into a larger node through an end point beside its centre (more than 3 px):
-  one edit point on the line, 3 px outside that node (`EDGE`), the line on to the centre from there (no
-  port). A point under the node would show: CellDesigner draws lines over nodes, so the
-  line would run on to the centre (iNOS CaM -> CaM:iNOS 23.6 px, mevalonate
-  AMPK 14.4 px, glycolysis extended IRS1 22 px, SREBP 4.5 px, cAMP 3.7 px).
+- A line's end off a species' centre goes to the nearest of its 16 places, never through a point added
+  outside the node: such a point stays where it is when the species is moved in CellDesigner. Where the line
+  has a bend of its own next to that end, the bend moves into line with the place, so a straight leg stays
+  straight; a line without one may tilt by a few px. Lines share a place when a side has more lines than
+  places, as CellDesigner does. The messages list, per species, the places shared and the ends moved more
+  than 5 px.
 
 The rules above are for CellDesigner (as drawn), `-drawn.xml`. CellDesigner
 (straight & bends), `-bends.xml`, has the drawing below without the moves. CellDesigner (advanced) keeps the
@@ -624,9 +628,8 @@ or with the process's centre. This applies to TAG (2 arcs), BCAA (4), PDH (6; PD
 corner). Back to yEd (advanced) the arc ends at the same point of the 18 px process: corners at
 (9, 9), side middles at (0, 9) across the flow, so GraphML -> CellDesigner ->
 GraphML -> CellDesigner gives PDH's drawing twice (`test_repeat`).
-The route: the yEd route made orthogonal; from an off-centre yEd port a lane at the process glyph's
-height from just outside the node, only if the port is off the line from the centre by more than
-2 px; a slanting straight arc from a port on the border takes that port. No edit point on a
+The route: the yEd route made orthogonal; a straight arc from off the centre takes the nearest of the
+16 places when that moves the line by more than 2 px. No edit point on a
 straight line between its neighbours (`layout.unbent`, also used on the way back).
 
 Both layouts: CellDesigner writes a complex's name at the bottom inside it. Its members move up to
@@ -710,5 +713,36 @@ opened and saved in CellDesigner 4.4 (`tests/celldesigner/location-in-compartmen
 - No compartments, the location as each species' SBML note ("location: nucleus"): kept, CellDesigner adds a line
   break before `</body>`.
 Not yet known: whether CaSQ or MINERVA read either.
+
+## Font sizes (measured in CellDesigner 4.4's PDF export)
+
+The file stores one font property: `<celldesigner:font size="..."/>` on a species or complex alias, the size of its
+name, set in CellDesigner by right-click, Change Font (window Change Species Name Font, Font Size, a Default button).
+Sites, states, structural states and units of information carry none: CellDesigner draws them at fixed sizes, and no
+file changes them. No font family is stored.
+
+Measured in two PDF exports kept in viewer-source/viewer-source `notes/check-files/`: `glutaminase-celldesigner-edited`
+(names at 14 from our writer) and `font-sizes/font-sizes-celldesigner-user` (made from a new file in CellDesigner
+4.4.2 by the user: proteins left at the default, one set to 14). Text is drawn as outlines, so each size comes from
+letter heights against a name of known size: at 12 the flat capital P is 8.67, the round O 9.08; at 14 they are
+10.13 to 10.16 and 10.66. A name set to 14 is drawn at 14.0 (P 10.13 against 8.67 at 12).
+
+| Text | Letters measured | Size |
+|---|---|---|
+| Species name, new species (CellDesigner's default) | `font size="12"` written for every new protein | 12 |
+| Species name set by the user | Prot D at 14: P 10.13 | as set |
+| Unit of information (`N:6`, `ct:gene`, `ct:mRNA`) | N 8.67 at names of 12; R, N, A 8.70 at names of 14 | 12 |
+| Residue site name (`S10`, `@S314`) | S 7.58 and 7.61 (round) | 10 |
+| State symbol in the residue circle (P) | P 6.50 and 6.52 | 9 |
+| Structural state (`active`) | t 5.83, a 5.00 against 7.79 and 6.67 at 12 | 9 |
+| Complex name, new complex (default) | `font size="12"`; M, P 8.67 | 12 |
+| Complex name set by the user | 14: M, P 10.12 | as set |
+| Compartment name | E 8.67, t 7.79 (no font element; CellDesigner offers no way to change it) | 12 |
+
+The structural state's ellipse in that file is 50 x 16 for `active`. The renderer (`cdrender.js` and `.py`) draws
+all these sizes.
+
+A complex's name sits with its baseline 7 above the bottom of the complex at 12 and at 14 alike, and the renderer
+draws it so. Second test file: `font-sizes/font-sizes-celldesigner-user-v02`.
 
 {% endraw %}
