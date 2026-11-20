@@ -131,8 +131,15 @@ then write it. Examples: the converter's own SBGN-ML of every test map, and file
   editor that edits the GraphML can write it back as an activity with its unit. SBGN-ML written from
   GraphML is Process Description, the activity as its entity.
 - An equivalence arc between two drawn glyphs (an entity and a submap, read as a phenotype) is a plain line.
-- Left out and printed: what the maps do not draw (tag and equivalence arc to it, annotation
-  glyphs, clone markers), and arcs of other classes. Association and dissociation are read as the
+- Tags and terminals: a tag is yEd's Tag (a box with a point; plain points right, the style property inverse left,
+  the property orientation up or down, SBGN-ML's four orientations), its equivalence arc a plain line. A Process
+  Description submap's terminal is a Tag too, a top-level node at the submap's border with the node property SBGN class
+  terminal (yEd has no terminal). Read from GraphML, a tag inside a submap's box and meeting one of its sides, or one
+  marked terminal and touching it, is that submap's terminal, and the submap stays a submap (else read as a phenotype,
+  below); written to SBGN-ML, each terminal goes into its submap's glyph with its orientation, a line between an
+  entity and a tag as an equivalence arc from the entity. CellDesigner and SBML core have no tag: tags, terminals and
+  their arcs are left out there, said once (`graphml.without_tags`).
+- Left out and printed: what the maps do not draw (annotation glyphs, clone markers), and arcs of other classes. Association and dissociation are read as the
   generic process (MINERVA, Newt).
 - Perturbing agent and phenotype: the maps have one glyph for both, the
   phenotype, as CellDesigner has (PHENOTYPE), which also stands for a submap. A perturbing agent is
@@ -154,9 +161,8 @@ AND, OR, NOT, phenotype and compartments as in PD. A delay is a yEd Operator lab
 equivalence operator (the test file `tests/yed/delay.graphml`): one plain line in, one arc out (an
 influence). CellDesigner and SBGN PD have no delay: there its input is joined to its target with the type of
 the arc out of it (`graphml.without_delays`). A submap is a phenotype with its name; its
-terminals and tags are left out (named on the console). An equivalence arc is a plain line, yEd's
-consumption arc; one to a submap terminal joins the activity to the submap's phenotype,
-one to a tag is left out with the tag. Onwards (CellDesigner, SBGN PD) the check marks it red: no form there.
+terminals are left out (named on the console), tags kept as in PD. An equivalence arc is a plain line, yEd's
+consumption arc; one to a submap terminal joins the activity to the submap's phenotype. Onwards (CellDesigner, SBGN PD) the check marks it red: no form there.
 No Activity Flow output. Test: `tests/external/newt/af/` (Newt's TGF-beta map).
 
 Hybrid PD-AF maps (Newt's `hybrid pd-af`, `hybrid sbgn`): an activity joined to a
@@ -223,7 +229,7 @@ doi:10.1515/jib-2025-0018; source github.com/sbgn/process-descriptions, commit 1
   read and written, not compared).
 - In momapy, not on the maps: CellDesigner protein types (receptor, ion channel, truncated), gene and
   RNA regions, CellDesigner reaction types (transport, transcription, translation, heterodimer
-  association, truncation), units of information on compartments, tags and terminals.
+  association, truncation), units of information on compartments.
 - SBGN PD 2.1 (changes from 2.0: wording of must and should, a state variable with only a name, a unit
   of information rule, connectivity table, empty set without clone marker): duplicated entity pool
   nodes are allowed only with a clone marker (Duplication rules), which the converter's SBGN-ML does not write
