@@ -49,8 +49,8 @@ noindex: true
 <p>The converter reads every format into one model of the map and writes every format from it. The model holds two things: the biology
 (entities, reactions, annotation) and its drawing (boxes, arcs and bends, each pointing to what it draws by its
 id). Readers read and writers write, nothing else. What every format shares in the layout is in one module, what
-only one target needs (yEd, CellDesigner, Newt) in an adapter next to its writer. SBML with layout is not written yet
-in either direction, nor SBML without layout and the BioPAX export (dashed). The format details are on the
+only one target needs (yEd, CellDesigner, Newt) in an adapter next to its writer. SBML with layout is written,
+drawn as the SBGN-ML file. Reading it on this page, SBML without layout and BioPAX are not written yet (dashed). The format details are on the
 <a href="{{ '/converter/description/' | relative_url }}">description page</a>.</p>
 
 <h2>How it is built</h2>
@@ -135,9 +135,9 @@ in either direction, nor SBML without layout and the BioPAX export (dashed). The
   <rect class="ca-box" x="880" y="245" width="150" height="50" rx="7"/>
   <text class="ca-name" x="955" y="266" text-anchor="middle">sbgnml.write</text>
   <text class="ca-sub" x="955" y="284" text-anchor="middle">writes the file only</text>
-  <rect class="ca-plan" x="880" y="405" width="150" height="50" rx="7"/>
-  <text class="ca-name ca-pt" x="955" y="426" text-anchor="middle">sbml.write</text>
-  <text class="ca-sub" x="955" y="444" text-anchor="middle">with or without layout</text>
+  <rect class="ca-box" x="880" y="405" width="150" height="50" rx="7"/>
+  <text class="ca-name" x="955" y="426" text-anchor="middle">sbml.write</text>
+  <text class="ca-sub" x="955" y="444" text-anchor="middle">with layout and render</text>
   <rect class="ca-plan" x="880" y="485" width="150" height="50" rx="7"/>
   <text class="ca-name ca-pt" x="955" y="506" text-anchor="middle">biopax.write</text>
   <text class="ca-sub" x="955" y="524" text-anchor="middle">biology only, export</text>
@@ -148,8 +148,8 @@ in either direction, nor SBML without layout and the BioPAX export (dashed). The
   <rect class="ca-fmt" x="1060" y="250" width="120" height="40" rx="5"/>
   <text class="ca-fmtt" x="1120" y="268" text-anchor="middle">SBGN-ML ×2</text>
   <text class="ca-sub" x="1120" y="284" text-anchor="middle">for Newt</text>
-  <rect class="ca-plan" x="1060" y="410" width="120" height="40" rx="5"/>
-  <text class="ca-fmtt ca-pt" x="1120" y="435" text-anchor="middle">SBML</text>
+  <rect class="ca-fmt" x="1060" y="410" width="120" height="40" rx="5"/>
+  <text class="ca-fmtt" x="1120" y="435" text-anchor="middle">SBML</text>
   <rect class="ca-plan" x="1060" y="490" width="120" height="40" rx="5"/>
   <text class="ca-fmtt ca-pt" x="1120" y="515" text-anchor="middle">BioPAX</text>
   <text class="ca-sub" x="780" y="423" text-anchor="middle">no adapter needed</text>
@@ -269,9 +269,10 @@ only, the fallback if the page has to go back to it.</p>
   <li>Done. The layout out of the readers and writers into <code>layout.py</code> and the three adapters, checked against the reference files after each move.</li>
   <li>Done. Four CellDesigner files: advanced (the small moves), straight &amp; bends, straight line, and as drawn: no node moved, the process glyph where yEd has the process and a line into a large node beside its centre, held by edit points that change nothing CellDesigner draws and are left out on the way back. The straight layout stays the simple fallback: each process midway, a modifier's arc may slant.</li>
   <li>As drawn is kept as it is: more edit points only when a real exchange between editors needs them.</li>
-  <li>SBML with layout, read and written, and SBML without layout written, built to that rule. Not written yet.</li>
+  <li>Done in part. SBML with layout written, Level 3 with the Layout and Render packages, drawn as the SBGN-ML file and
+  checked with libSBML. SBML is not read on this page, and SBML without layout is not written.</li>
   <li>BioPAX is not written.</li>
 </ol>
 
-<p class="ca-sub" style="font-size: 13px; color: #777;">Updated 2026-10-28.
+<p class="ca-sub" style="font-size: 13px; color: #777;">Updated 2026-11-20.
 The code in <code>converter/mapconv/</code> is a copy of the converter's code, kept in a private repository.</p>
