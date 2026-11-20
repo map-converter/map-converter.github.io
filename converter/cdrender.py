@@ -149,6 +149,47 @@ def leave(poly, P, Q):
     return P if best is None else (P[0] + best * (Q[0] - P[0]), P[1] + best * (Q[1] - P[1]))
 
 
+def name_left(box, name):
+    # the left of a compartment's name (its namePoint x) at the top middle of box: its widest line centred
+    w = max(width(l, 12) for l in plain_name(name or '').replace('_br_', '\n').split('\n'))
+    return box[0] + box[2] / 2 - w / 2
+
+
+NAME_PLACES = ['tl', 't', 'tr', 'l', 'c', 'r', 'bl', 'b', 'br']
+
+
+def name_point(box, name, th, p, oval=False):
+    # a compartment's name at one of nine places in box (cdrender.js namePoint): its box the membrane's thickness + 5
+    # from a side and + 0.5 from the top and bottom, centred otherwise; on an oval a corner's box has its outer corner on
+    # the inner ellipse at 45 degrees; the namePoint is its top left, to 0.1
+    ls = plain_name(name or '').replace('_br_', '\n').split('\n')
+    w, h = max(width(l, 12) for l in ls), 23 + 14 * (len(ls) - 1)
+    c, r = p[-1], p[0]
+    if oval and len(p) == 2:
+        cx, cy = box[0] + box[2] / 2, box[1] + box[3] / 2
+        a, e = max(box[2] / 2 - th, 0) / math.sqrt(2), max(box[3] / 2 - th, 0) / math.sqrt(2)
+        x = cx - a if c == 'l' else cx + a - w
+        y = cy - e if r == 't' else cy + e - h
+    else:
+        x = box[0] + th + 5 if c == 'l' else box[0] + box[2] - th - 5 - w if c == 'r' else box[0] + box[2] / 2 - w / 2
+        y = box[1] + th + 0.5 if r == 't' else box[1] + box[3] - th - 0.5 - h if r == 'b' else box[1] + box[3] / 2 - h / 2
+    return math.floor(x * 10 + 0.5) / 10, math.floor(y * 10 + 0.5) / 10
+
+
+def name_place_of(box, name, th, np_, oval=False, one=False):
+    # which of the nine places a namePoint is at (within 1 on each axis), else None; one: None also where two or more
+    # places meet there, so a move or resize keeps the name as it is
+    hit = [p for p in NAME_PLACES if abs(name_point(box, name, th, p, oval)[0] - np_[0]) < 1 and abs(name_point(box, name, th, p, oval)[1] - np_[1]) < 1]
+    return hit[0] if hit and not (one and len(hit) > 1) else None
+
+
+# a reduced notation's head by its type; a gate reaction's by its modificationType, else as a reduced type's
+REDUCED_HEAD = {'PHYSICAL_STIMULATION': 'stimulation-reduced', 'REDUCED_PHYSICAL_STIMULATION': 'stimulation-reduced',
+                'NEGATIVE_INFLUENCE': 'inhibition', 'REDUCED_MODULATION': 'modulation', 'REDUCED_TRIGGER': 'trigger',
+                'POSITIVE_INFLUENCE': 'production', 'CATALYSIS': 'catalysis', 'INHIBITION': 'inhibition'}
+GATE_HEAD = {'CATALYSIS': 'catalysis', 'INHIBITION': 'inhibition', 'TRIGGER': 'trigger', 'MODULATION': 'modulation',
+             'PHYSICAL_STIMULATION': 'stimulation'}
+
 class Drawing:
     def __init__(self, path):
         r = etree.parse(path).getroot()
@@ -216,11 +257,13 @@ class Drawing:
             self.out.append('<ellipse cx="%s" cy="%s" rx="%s" ry="%s" fill="none" stroke="%s" stroke-width="%s"/>' % (fmt(x + w / 2), fmt(y + h / 2), fmt(w / 2 - t), fmt(h / 2 - t), ink, fmt(iw)))
         else:
             # the band between the two lines in the compartment's colour, at a quarter (CellDesigner's
-            # opacity 0.498 on a fill-opacity 0.498)
+            # opacity 0.498 on a fill-opacity 0.498); the inner corners concentric with the outer ones (radius 20 less
+            # the thickness), so the band keeps its width round the corners
+            ri = max(20 - t, 0)
             self.out.append('<path d="%s %s" fill="%s" fill-opacity="0.25" fill-rule="evenodd"/>'
-                            % (rrect(x, y, w, h, 20), rrect(x + t, y + t, w - 2 * t, h - 2 * t, 14), fill))
+                            % (rrect(x, y, w, h, 20), rrect(x + t, y + t, w - 2 * t, h - 2 * t, ri), fill))
             self.out.append('<rect x="%s" y="%s" width="%s" height="%s" rx="20" fill="none" stroke="%s" stroke-width="%s"/>' % (fmt(x), fmt(y), fmt(w), fmt(h), ink, fmt(ow)))
-            self.out.append('<rect x="%s" y="%s" width="%s" height="%s" rx="14" fill="none" stroke="%s" stroke-width="%s"/>' % (fmt(x + t), fmt(y + t), fmt(w - 2 * t), fmt(h - 2 * t), ink, fmt(iw)))
+            self.out.append('<rect x="%s" y="%s" width="%s" height="%s" rx="%s" fill="none" stroke="%s" stroke-width="%s"/>' % (fmt(x + t), fmt(y + t), fmt(w - 2 * t), fmt(h - 2 * t), fmt(ri), ink, fmt(iw)))
         np_ = self.f(a, 'cd:namePoint')
         if np_ is not None:
             for k, line in enumerate(self.name_lines(self.cnames.get(a.get('compartment'), ''))):
@@ -282,7 +325,7 @@ class Drawing:
             for k, line in enumerate(lines):
                 self.text(line, mid, cy + z / 3 + z * 7 / 6 * k, size=z, extra=' class="t-%s"' % ROLE.get(cls, 'white') if CLASSES else '')
         else:
-            self.text(' '.join(self.name_lines(name)), x + fw / 2, y + fh - z * 7 / 12, size=z, extra=' class="t-complex"' if CLASSES else '')
+            self.text(' '.join(self.name_lines(name)), x + fw / 2, y + fh - 7, size=z, extra=' class="t-complex"' if CLASSES else '')
 
     def shape(self, cls, b, fill, alpha, dash):
         x, y, w, h = b
@@ -320,24 +363,29 @@ class Drawing:
         mods = {m.get('residue'): m for m in si.iterfind('cd:state/cd:listOfModifications/cd:modification', NS)}
         pid = pref.text if pref is not None else None
         # CellDesigner draws every residue of the protein, an empty circle where the species gives no state
-        def site_name(site, px, py):  # a residue's name inside the shape, 11 in from its circle, kept inside (MAPT cleavage PDF)
+        # a residue's name inside the shape, as CellDesigner 4.4 draws it (its PDF of residues all round four proteins):
+        # at the same angle on the outline 9 in, 2 more in from a side the circle sits on, its middle level with that
+        # point; left-aligned left of the middle, right-aligned right of it, centred in the middle
+        def site_name(site, ang):
             if not site or not front:
                 return
-            tw = width(site, 10)
-            # toward the centre: below a circle in the upper half, above one in the lower half
-            tx = px + (11 if px <= x + 1 else -11 if px >= x + w - 1 else 0)
-            ty = py + (11 if py < y + h / 2 else -11)
-            tx = min(max(tx, x + 2 + tw / 2), x + w - 2 - tw / 2)
-            self.text(site, tx, ty + 3.5, size=10)
+            e = 1e-6
+            o = on_border(b, ang)
+            fx = (o[0] - x) / w - 0.5 if w else 0
+            fy = (o[1] - y) / h - 0.5 if h else 0
+            p = on_border([x + 9, y + 9, max(w - 18, 0), max(h - 18, 0)], ang)
+            tx = p[0] + (2 if fx <= -0.5 + e else -2 if fx >= 0.5 - e else 0)
+            ty = p[1] + (2 if fy <= -0.5 + e else -2 if fy >= 0.5 - e else 0)
+            self.text(site, tx, ty + 3.5, size=10, anchor='start' if fx < -e else 'end' if fx > e else 'middle')
         for (p_, r_), (ang, site) in self.residues.items():
             if p_ == pid and r_ not in mods:
                 px, py = on_border(b, ang)
                 self.out.append('<circle cx="%s" cy="%s" r="8" fill="#fff" stroke="#000"/>' % (fmt(px), fmt(py)))
-                site_name(site, px, py)
+                site_name(site, ang)
         for m in mods.values():
             ang, site = self.residues.get((pid, m.get('residue')), (0.0, None))
             px, py = on_border(b, ang)
-            site_name(site, px, py)
+            site_name(site, ang)
             self.out.append('<circle cx="%s" cy="%s" r="8" fill="#fff" stroke="#000"/>' % (fmt(px), fmt(py)))
             sym = SYMBOL.get(m.get('state'), m.get('state'))
             if sym:
@@ -348,7 +396,7 @@ class Drawing:
             px, py = on_border(b, ang)
             label = st.get('structuralState')  # an ellipse 12 wider than its 10 px text on each side
             self.out.append('<ellipse cx="%s" cy="%s" rx="%d" ry="8" fill="#fff" stroke="#000"/>' % (fmt(px), fmt(py), int(width(label, 10) / 2 + 12)))
-            self.text(label, px, py + 3, size=10)
+            self.text(label, px, py + 3, size=9)  # drawn at 9 (CellDesigner 4.4 PDF); the ellipse is sized from the text width at 10
         info = f(a, 'cd:info')
         if front and info is not None and info.get('state') == 'open':
             label = ' %s:%s ' % (info.get('prefix'), info.get('label')) if info.get('prefix') != 'free input' else ' %s ' % info.get('label')
@@ -393,6 +441,9 @@ class Drawing:
             return ((x + h * (1 - fy)) if fx == 0 else (x + w - h * fy), y + fy * h)
         if self.alias[i][0] == 'DEGRADED':  # on its drawn circle, 3/4 of the box (AsthmaMap mast cell PDF: no gap)
             x, y, w, h = x + w / 8, y + h / 8, w * 3 / 4, h * 3 / 4
+        if self.alias[i][0] == 'COMPLEX' and side in ('NE', 'SE', 'SW', 'NW'):  # a corner on the middle of its cut
+            fx, fy = ANCHOR[side]
+            return (x + fx * w + (2.5 if fx == 0 else -2.5), y + fy * h + (2.5 if fy == 0 else -2.5))
         # on an ellipse at 22.5 degree steps, on a phenotype's hexagon, else on the box (the converter's rule)
         return anchor_point((x, y, w, h), side, circle=self.alias[i][0] in ROUND, hexagon=self.alias[i][0] == 'PHENOTYPE')
 
@@ -475,10 +526,9 @@ class Drawing:
         if kind == 'stimulation':
             self.lines.append('<polygon points="%s" fill="#fff" stroke="#000"/>' % pts([T, at(8, 4), at(8, -4)]))
             return at(8, 0)
-        if kind == 'stimulation-reduced':  # a black triangle, white inside
-            self.lines.append('<polygon points="%s" fill="#000"/>' % pts([T, at(15, 5), at(15, -5)]))
-            self.lines.append('<polygon points="%s" fill="#fff"/>' % pts([at(4.8, 0), at(12, 2), at(12, -2)]))
-            return at(15, 0)
+        if kind == 'stimulation-reduced':  # SBGN's open triangle, as yrender's white_delta
+            self.lines.append('<polygon points="%s" fill="#fff" stroke="#000"/>' % pts([T, at(16, 6), at(16, -6)]))
+            return at(16, 0)
         if kind == 'trigger':
             self.lines.append('<polygon points="%s" fill="#fff" stroke="#000"/>' % pts([T, at(15, 5), at(15, -5)]))
             self.lines.append('<line x1="%s" y1="%s" x2="%s" y2="%s" stroke="#000"/>' % (*map(fmt, at(20, 4.5)), *map(fmt, at(20, -4.5))))
@@ -535,9 +585,7 @@ class Drawing:
         dash = {'TRANSCRIPTION': '10,4,2,4,2,4', 'TRANSLATION': '10,3,2,3'}.get(typ, dash)
         if reduced:  # an arc between the entities, its head by type
             self.ends(line, ra, pa)
-            kind = {'PHYSICAL_STIMULATION': 'stimulation-reduced', 'REDUCED_PHYSICAL_STIMULATION': 'stimulation-reduced',
-                    'NEGATIVE_INFLUENCE': 'inhibition', 'REDUCED_MODULATION': 'modulation', 'REDUCED_TRIGGER': 'trigger',
-                    'POSITIVE_INFLUENCE': 'production', 'CATALYSIS': 'catalysis', 'INHIBITION': 'inhibition'}.get(typ.replace('UNKNOWN_', ''), 'production')
+            kind = REDUCED_HEAD.get(typ.replace('UNKNOWN_', ''), 'production')
             u = unit(line[-1][0] - line[-2][0], line[-1][1] - line[-2][1])
             self.open(self.cur + '|a')
             stop = self.head(kind, line[-1], u)
@@ -659,8 +707,8 @@ class Drawing:
         seq = [G] + [from_frame(G, B, p) for p in gbend] + [B]
         seq[-1] = B = self.clip(pa, B, anc, seq[-2])
         u = unit(B[0] - seq[-2][0], B[1] - seq[-2][1])
-        kind = {'CATALYSIS': 'catalysis', 'INHIBITION': 'inhibition', 'TRIGGER': 'trigger', 'MODULATION': 'modulation',
-                'PHYSICAL_STIMULATION': 'stimulation'}.get(top[0].get('modificationType'), 'stimulation')
+        ot = top[0].get('modificationType')
+        kind = GATE_HEAD.get(ot) or REDUCED_HEAD.get(ot) or 'stimulation'
         stop = self.head(kind, B, u)
         u0 = unit(seq[1][0] - G[0], seq[1][1] - G[1])
         self.open('%s|a' % self.cur)
@@ -692,14 +740,15 @@ class Drawing:
                 seq = [O] + (bends if into else bends[::-1]) + [J]
                 seq[0] = self.clip(i, O, anc, seq[1])
                 lc = f(l, 'cd:line')
-                lcol = colour(lc.get('color'))[0] if lc is not None else col
+                lcol = colour(lc.get('color'))[0] if lc is not None else col  # its own colour and width, as CellDesigner keeps one for each
+                lwd = float(lc.get('width', width)) if lc is not None else width
                 if into:
-                    self.path(seq, lcol, width, dash, end_node=False)
+                    self.path(seq, lcol, lwd, dash, end_node=False)
                 else:
                     seq = seq[::-1]
                     w_ = unit(seq[-1][0] - seq[-2][0], seq[-1][1] - seq[-2][1])
                     stop = self.head('production', seq[-1], w_)
-                    self.path(seq[:-1] + [stop], lcol, width, dash, start_node=False)
+                    self.path(seq[:-1] + [stop], lcol, lwd, dash, start_node=False)
                 self.close()
         # modifiers end at the point of the square targetLineIndex names
         gate_inputs = set()
@@ -758,7 +807,7 @@ class Drawing:
             u = unit(seq[-1][0] - seq[-2][0], seq[-1][1] - seq[-2][1])
             stop = self.head(HEADS.get(t, 'stimulation'), T, u)
             mc = f(m, 'cd:line')
-            self.path(seq[:-1] + [stop], colour(mc.get('color'))[0] if mc is not None else col, width, t.startswith('UNKNOWN'), end_node=False)
+            self.path(seq[:-1] + [stop], colour(mc.get('color'))[0] if mc is not None else col, float(mc.get('width', width)) if mc is not None else width, t.startswith('UNKNOWN'), end_node=False)
             self.close()
         # the process glyph: a 10 px square along the line, over the lines
         ang = math.degrees(math.atan2(fl[1], fl[0]))
