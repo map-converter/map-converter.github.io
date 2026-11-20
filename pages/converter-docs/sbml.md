@@ -98,7 +98,9 @@ CellCollective), with its drawing in Layout and Render (the button SBML-qual on 
 model comes from its Activity Flow, and so does a map with no influence between its nodes.
 
 - Nodes: one qualitative species per activity (glyphs that draw one activity are one node), Boolean (maxLevel 1), with
-  the activity's identifiers. A node with no influence in is an input: constant, its level set for each run.
+  the activity's identifiers. Its id is its name, a gene's and an mRNA's with `_gene` and `_mRNA` and two forms of one
+  name with their states, so the ids read as names in any tool. A node with no influence in is an input: constant, its
+  level set for each run.
 - Rules: one transition per node with influences in. The node is on when any positive influence is on, every necessary
   stimulation is on and no negative influence is on. A node with negative influences only is on unless one of them is.
   Logic gates as drawn: AND, OR, NOT, and gates on gates. Every line into a gate is one of its inputs, whatever its
@@ -108,6 +110,10 @@ model comes from its Activity Flow, and so does a map with no influence between 
   whose only influences are unknown keeps its level, as an input does. Each transition's notes give its rule in the
   .bnet notation. A gate without an input, and lines that carry no rule (to or from a compartment), are left out and
   said.
+- Rules from elsewhere: `write_qual(map, rules)` writes rules a tool gives in place of the map's own reading, one per
+  node, each node then its own activity. A Process Description map reaches SBML-qual this way: a converter from PD to
+  Activity Flow builds the Activity Flow map and its rules, which can hold what a drawing alone cannot (a remover that is
+  always present, a rule that keeps a node on).
 - What a run needs beyond the file: the inputs' levels and the updating (synchronous, asynchronous), which SBML-qual
   leaves to the tool.
 - Drawing: each activity and each gate a general glyph with its box (an activity's names its qualitative species, as
