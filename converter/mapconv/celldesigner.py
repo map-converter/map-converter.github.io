@@ -350,8 +350,9 @@ def write(diagram, ann, layout='straight'):
         if us:  # one per alias: <info state="open" prefix="ct" label="gene"/> (angle as in the old files)
             prefix, lab = cd_info(us[0])
             sub(a, 'info', state='open', prefix=prefix, label=lab, angle='-1.5707963267948966')
-            at = d.unit_at.get(us[0])
-            if at and abs(at[1] + 0.5) > 1e-6:  # placed off the top in its file: CellDesigner's angle for another side not known yet
+            k = d.units.index(us[0]) if us[0] in d.units else -1
+            at = d.unit_at[k] if 0 <= k < len(d.unit_at) else None
+            if at:  # placed in its file away from its slot: CellDesigner's angle for another place not known yet
                 report.say('changed', '%s: unit of information %s placed at the top (CellDesigner\'s default)' % (label[i], us[0]))
             if us[1:]: report.say('left out', '%s: units of information %s left out (CellDesigner keeps one)' % (label[i], ', '.join(us[1:])))
         else:

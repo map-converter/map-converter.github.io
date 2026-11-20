@@ -24,7 +24,8 @@ cd2sbgnml read. It writes from yEd GraphML and reads the way back.
   the rest. A compartment's label keeps its place (label bbox from the yEd label), and its outline width
   (the render extension's stroke-width).
 - State variables: `P@S455` is value `P`, variable `S455` (the spec's own example: P@T286),
-  placed where yEd has the icon. Units of information along the top edge, as the GraphML writer.
+  placed where yEd has the icon. Units of information where the file places them, each by its order on the glyph;
+  a unit with no place is spread along the top edge, as the GraphML writer does.
 - Processes and gates get the two ports the spec asks for (2.10), on the line from the inputs
   (consumptions, gate inputs) to the outputs, the stick half the glyph's side long (at least 9 px, the viewer's
   renderer's rule); the orientation follows. Ports the map gives (read from SBGN-ML: an arc's end
