@@ -16,6 +16,7 @@
     - {page: messages, title: Messages}
     - {page: celldesigner, title: CellDesigner files}
     - {page: sbgnml, title: SBGN-ML files}
+    - {page: sbml, title: SBML files}
     - {page: cd-to-sbgn, title: CellDesigner to SBGN}
     - {page: annotation, title: Annotation}
 - section: Explanation
