@@ -170,6 +170,12 @@ MINERVA (glycolysis v01).
   drawn at 7 places, would get 7 residues (Pa@26 at 165, 179 and 195 degrees), and
   the SBGN-ML export 7 state variables, 3 of them empty; EGFR
   (phosphoinositides) 2 for one site.
+- Reading: a residue belongs to the protein, and CellDesigner draws every residue of a protein on every species of
+  it, an empty circle where the species sets no state. The reader gives each species all of them: its own states in
+  its own order, then the protein's other residues, empty, so a protein drawn several times has the same state
+  variables on each glyph in SBGN-ML and GraphML. Protein entries of one name and type count as one protein (files
+  written by other tools often hold one entry per species): their residues are joined, by site name, an unnamed one
+  by its angle. The writer already keeps one protein per name, its residues gathered from every glyph (above).
 - CellDesigner 4.4 Startup Guide (pp. 39-40, 84): the
   modification menu offers phosphorylated, palmytoylated, acetylated,
   prenylated, ubiquitinated, protonated, methylated, sulfated, hydroxylated,
