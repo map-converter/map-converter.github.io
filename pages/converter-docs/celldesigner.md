@@ -751,4 +751,17 @@ all these sizes.
 A complex's name sits with its baseline 7 above the bottom of the complex at 12 and at 14 alike, and the renderer
 draws it so. Second test file: `font-sizes/font-sizes-celldesigner-user-v02`.
 
+## Stoichiometry (cardinality)
+
+CellDesigner 4.4.2 keeps a stoichiometry on every reactant and product (the SpeciesReference window: stoichiometry,
+stoichiometryMath) and does not draw it on the line. It is SBGN's cardinality. In the file it is an attribute of the
+reaction's `speciesReference` (listOfReactants or listOfProducts), written only when it is not 1:
+`<speciesReference metaid="CDMT00001" species="s_n1" stoichiometry="2">`. Saving such an edit, CellDesigner gives the
+edited `speciesReference` a metaid of its own series (CDMT...) and moves the numbers of its unit definitions up by one;
+that numbering is CellDesigner's and is left to it.
+The converter reads and writes it in every format: a number labelled on a yEd consumption or production line (the
+GraphML maps draw it so, a boxed number), SBGN-ML's `cardinality` glyph of the arc, CellDesigner's stoichiometry other
+than 1; written only where one is set, nothing for 1 (CellDesigner holds numbers only). Its box is placed beside the
+line near the species, above it (right of a line near upright), past a product's arrowhead.
+
 {% endraw %}

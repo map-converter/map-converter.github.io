@@ -215,9 +215,11 @@ What the converter's biology model (model.py) records was compared with momapy 0
 doi:10.1515/jib-2025-0018; source github.com/sbgn/process-descriptions, commit 1558ba5):
 - Recorded as momapy does: names, state variables with sites, units of information, annotations
   (qualifier, resource), complex members with their own states, multimer count, family and members,
-  logic gates, equivalence, source and sink, reversible processes, nested compartments, dashed arcs.
-- Not recorded: stoichiometry (momapy's FluxRole.stoichiometry, SBGN's
-  cardinality; arc labels such as 2 O2 in eNOS, not read), the kind of process (omitted, uncertain;
+  logic gates, equivalence, source and sink, reversible processes, nested compartments, dashed arcs, and a
+  consumption's or production's cardinality (momapy's stoichiometry): an arc's `cardinality` glyph, read and written,
+  CellDesigner's stoichiometry other than 1, a number labelled on a yEd line; written only where one is set, its box
+  beside the line near the entity.
+- Not recorded: the kind of process (omitted, uncertain;
   read and written, not compared).
 - In momapy, not on the maps: CellDesigner protein types (receptor, ion channel, truncated), gene and
   RNA regions, CellDesigner reaction types (transport, transcription, translation, heterodimer
