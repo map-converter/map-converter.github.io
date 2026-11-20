@@ -838,7 +838,10 @@ def mathml(parent, f):
             mathml(a, x)
 
 
-def write_qual(diagram):
+def write_qual(diagram, rules=None):
+    # rules: {node id: rule} to write in place of the map's own reading, a rule as an expression of node ids
+    # (('var', id), ('true',), ('not', f), ('and' | 'or', [f, ...])); an id is an activity's glyph or a delay gate. A tool
+    # that knows more than the drawing (a PD to AF conversion, from a Process Description map) gives them
     from .biology import label, PROCESSES
     from .graphml import DELAY
     from .layout import centre
@@ -850,6 +853,13 @@ def write_qual(diagram):
         return None
     m = sbgnml.shifted(diagram)
     N, bio = m.nodes, m.biology
+    ents, glyph_of = list(bio.entities.values()), bio.glyph  # the activities: the map's entities
+    if rules is not None:  # the caller's activities: each node its own, as the rules name them
+        from types import SimpleNamespace
+        by_id = {e.id: e for e in ents}
+        ents = [SimpleNamespace(id=i, glyphs=[i], key=by_id[bio.glyph[i]].key, state_variables=by_id[bio.glyph[i]].state_variables)
+                for i in N if i in bio.glyph]
+        glyph_of = {i: i for i in bio.glyph}
     L, R, Q = '{%s}' % LAYOUT, '{%s}' % sbgnml.RENDER, '{%s}' % QUAL
     used, links, said = set(), uses_links(m), []
     root = etree.Element('{%s}sbml' % CORE, nsmap={None: CORE, 'qual': QUAL, 'layout': LAYOUT, 'render': sbgnml.RENDER,
@@ -864,17 +874,25 @@ def write_qual(diagram):
         into[a.target].append(a); out_of[a.source].append(a)
     ops = {i for i, d in N.items() if d.kind == 'Operator'}
     gate = lambda i: 'delay' if (N[i].labels or [''])[0] == DELAY else (N[i].labels or [''])[0].upper()
-    qs = {e.id: sid(label(N[e.glyphs[0]]) or N[e.glyphs[0]].kind, used) for e in bio.entities.values()}
-    var = lambda i: qs[bio.glyph[i]]
+    def base(e):  # an activity's name, a gene's or mRNA's told apart from its protein, then two forms by their states
+        d = N[e.glyphs[0]]
+        return (label(d) or d.kind) + next(('_' + u[3:] for u in d.units if u in UNIT_SBO), '')
+    count = defaultdict(int)
+    for e in ents:
+        count[base(e)] += 1
+    qs = {e.id: sid(base(e) + ('_' + '_'.join(sv.value for sv in e.state_variables if sv.value)
+                               if count[base(e)] > 1 and any(sv.value for sv in e.state_variables) else ''), used)
+          for e in ents}
+    var = lambda i: qs[glyph_of[i]]
     delays = {}  # a delay gate -> the node that copies its input
     for i in (i for i in ops if gate(i) == 'delay'):
-        src = [b.source for b in into[i] if b.source in bio.glyph]
+        src = [b.source for b in into[i] if b.source in glyph_of]
         delays[i] = sid('delay_' + (var(src[0]) if src else i), used)
 
     def term(i, seen=()):
         # what a glyph stands for in a rule: an activity's level, or a gate's function of its inputs (every line into
         # a gate is an input, whatever its head)
-        if i in bio.glyph:
+        if i in glyph_of:
             return ('var', var(i))
         if i not in ops or i in seen:
             return None
@@ -905,8 +923,9 @@ def write_qual(diagram):
                 polarity(x, neg != (f[0] == 'not'), out)
         return out
 
+    given = rules
     rules, unknown_of, unknown = {}, {}, []
-    for e in bio.entities.values():
+    for e in ([] if given is not None else ents):
         arcs = [a for g in e.glyphs for a in into[g]]
         kind = lambda a: a.head if a.head in SIGN else 'stimulation' if a.head is None and a.source in ops else None
         terms = lambda h: [t for a in arcs if kind(a) in h for t in [term(a.source)] if t]
@@ -920,15 +939,20 @@ def write_qual(diagram):
             rules[v] = ('and', parts) if len(parts) > 1 else parts[0]
         elif unk:
             rules[v] = ('var', v)  # unknown influences only: the node keeps its level, as an input does
-    for i, v in delays.items():
+    for i, v in ([] if given is not None else delays.items()):
         ins = [t for b in into[i] for t in [term(b.source)] if t]
         if ins:
             rules[v] = ins[0] if len(ins) == 1 else ('or', ins)
         else:
             said.append('delay without an input, left out')
+    if given is not None:  # node ids to qualitative species
+        name = lambda i: var(i) if i in glyph_of else delays[i]
+        to_qs = lambda f: ('var', name(f[1])) if f[0] == 'var' else ('not', to_qs(f[1])) if f[0] == 'not' else \
+            (f[0], [to_qs(x) for x in f[1]]) if f[0] in ('and', 'or') else f
+        rules = {name(i): to_qs(f) for i, f in given.items() if f != ('var', i)}  # a node that keeps itself: an input
 
     lq = QE(model, 'listOfQualitativeSpecies')
-    for e in bio.entities.values():
+    for e in ents:
         d = N[e.glyphs[0]]
         el = QE(lq, 'qualitativeSpecies', id=qs[e.id], compartment=comp_ids.get(e.key[0], comp_ids['default']),
                 constant='false' if qs[e.id] in rules else 'true', maxLevel=1)
@@ -936,7 +960,7 @@ def write_qual(diagram):
             el.set(Q + 'name', label(d))
         annotate(el, d.data, links, used)
     for i, v in delays.items():
-        src = [b.source for b in into[i] if b.source in bio.glyph]
+        src = [b.source for b in into[i] if b.source in glyph_of]
         QE(lq, 'qualitativeSpecies', id=v, name='delay of %s' % label(N[src[0]]) if src else 'delay', compartment=comp_ids['default'],
            constant='false' if v in rules else 'true', maxLevel=1)
 
@@ -985,11 +1009,11 @@ def write_qual(diagram):
             shapes.append((gid[i], N[i], 'compartment'))
     lag = lay_el(lay, 'listOfAdditionalGraphicalObjects')
     for i, d in N.items():
-        if i in bio.glyph or i in ops:
-            gid[i] = sid(('qg_' if i in bio.glyph else 'og_') + i, used)
-            ref = var(i) if i in bio.glyph else delays.get(i)
+        if i in glyph_of or i in ops:
+            gid[i] = sid(('qg_' if i in glyph_of else 'og_') + i, used)
+            ref = var(i) if i in glyph_of else delays.get(i)
             lay_box(lay_el(lag, 'generalGlyph', id=gid[i], **({'reference': ref} if ref else {})), d.box)
-            texts.append((gid[i], label(d) if i in bio.glyph else ('τ' if i in delays else gate(i)), d.box, d.font, False))
+            texts.append((gid[i], label(d) if i in glyph_of else ('τ' if i in delays else gate(i)), d.box, d.font, False))
             shapes.append((gid[i], d, 'and' if i in ops else 'macromolecule' if d.kind == 'Macromolecule' else d.kind.lower()))
 
     def owner(a):
@@ -997,7 +1021,7 @@ def write_qual(diagram):
         todo, seen = [a.target], set()
         while todo:
             t = todo.pop(0)
-            tr = transition_of.get(var(t)) if t in bio.glyph else transition_of.get(delays.get(t))
+            tr = transition_of.get(var(t)) if t in glyph_of else transition_of.get(delays.get(t))
             if tr:
                 return tr
             if t in ops and t not in seen and t not in delays:
@@ -1016,7 +1040,7 @@ def write_qual(diagram):
             lay_el(hub[t], 'listOfReferenceGlyphs')
         c = AF_CLASS.get(a.head, 'logic arc') if a.target in ops or a.head is not None else 'stimulation'
         rf = lay_el(hub[t].find(L + 'listOfReferenceGlyphs'), 'referenceGlyph', id=sid('rf_' + a.id, used), glyph=gid[a.source],
-                    role=QUAL_ROLE[c], **({'reference': var(a.source)} if a.source in bio.glyph else {}))
+                    role=QUAL_ROLE[c], **({'reference': var(a.source)} if a.source in glyph_of else {}))
         s_, t_ = N[a.source], N[a.target]
         nxt = a.points[0] if a.points else centre(t_)
         prv = a.points[-1] if a.points else centre(s_)
