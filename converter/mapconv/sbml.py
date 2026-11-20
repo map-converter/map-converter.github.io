@@ -4,8 +4,9 @@
 # entity. Colours, outlines and font sizes from Render styles where the file has them. Read only; the rules in
 # docs/SBML.md.
 import os, re
+from collections import defaultdict
 from lxml import etree
-from . import report
+from . import report, sbgnml
 from .annotation import to_properties
 from .model import Map, Node, Arc
 from .sbgnml import colour, urn
@@ -361,24 +362,27 @@ def read(path):
 # docs/SBML.md, Writing; the specifications in specifications/.
 CORE = 'http://www.sbml.org/sbml/level3/version1/core'
 LAYOUT = 'http://www.sbml.org/sbml/level3/version1/layout/version1'
-RENDER_NS = 'http://www.sbml.org/sbml/level3/version1/render/version1'
 XSI = 'http://www.w3.org/2001/XMLSchema-instance'
-XHTML = 'http://www.w3.org/1999/xhtml'
-BQ = 'http://biomodels.net/biology-qualifiers/'
-# the map's glyph -> species SBO term (inverse of SPECIES: the term SPECIES reads back as the same glyph)
+# the map's glyph -> species SBO term, each one SPECIES reads back as the same glyph
 SBO_OF = {'Macromolecule': '0000245', 'Complex': '0000253', 'SimpleChemical': '0000247', 'NucleicAcidFeature': '0000354',
           'UnspecifiedEntity': '0000285', 'Phenotype': '0000358', 'EmptySet': '0000291', 'SourceAndSink': '0000291',
           'Submap': '0000358'}
 UNIT_SBO = {'ct:gene': '0000243', 'ct:mRNA': '0000278'}
 PROCESS_SBO = {'process': '0000375', 'omitted process': '0000397', 'uncertain process': '0000396',
                'association': '0000177', 'dissociation': '0000180'}
+# SBGN-ML arc class -> modifier SBO term and Layout role (MODIFIER reads them back), and what a NOT gate makes of it
 MODIFIER_SBO = {'catalysis': '0000013', 'inhibition': '0000020', 'stimulation': '0000459',
                 'necessary stimulation': '0000461', 'modulation': '0000594'}
 ROLE = {'catalysis': 'modifier', 'inhibition': 'inhibitor', 'stimulation': 'activator', 'necessary stimulation': 'activator',
         'modulation': 'modifier'}
+NEGATED = {'catalysis': 'inhibition', 'stimulation': 'inhibition', 'necessary stimulation': 'inhibition',
+           'inhibition': 'stimulation', 'modulation': 'modulation'}
+GATES = ('and', 'or', 'not')
 SHAPE = {'macromolecule': 'rectangle', 'nucleic acid feature': 'rectangle', 'simple chemical': 'ellipse',
-         'source and sink': 'ellipse', 'compartment': 'rectangle'}
+         'source and sink': 'ellipse', 'compartment': 'rectangle', 'and': 'ellipse', 'or': 'ellipse', 'not': 'ellipse'}
 RADIUS = {'macromolecule': '10', 'nucleic acid feature': '0', 'compartment': '10'}
+LAYOUT_ORDER = ('dimensions', 'listOfCompartmentGlyphs', 'listOfSpeciesGlyphs', 'listOfReactionGlyphs', 'listOfTextGlyphs',
+                'listOfAdditionalGraphicalObjects', 'listOfRenderInformation')  # the order libSBML writes
 
 
 def sid(s, used):
@@ -394,67 +398,77 @@ def sid(s, used):
 
 def write(diagram):
     from .biology import label
-    from . import sbgnml
+    from .annotation import of_node, uses_links
     N, bio = diagram.nodes, diagram.biology
-    G = '{%s}' % sbgnml.NS
+    G, L, R = '{%s}' % sbgnml.NS, '{%s}' % LAYOUT, '{%s}' % sbgnml.RENDER
     sb = etree.fromstring(sbgnml.write(diagram).encode('utf-8'))
     node_of = {sbgnml.xml_id(i): i for i in N}
+    colour_of = {sbgnml.xml_id(a.id): a.line for a in diagram.arcs}
     glyphs = {g.get('id'): g for g in sb.iter(G + 'glyph')}
     port_of = {p.get('id'): g.get('id') for g in glyphs.values() for p in g.findall(G + 'port')}
-    port_at = {p.get('id'): (float(p.get('x')), float(p.get('y'))) for g in glyphs.values() for p in g.findall(G + 'port')}
-    cls = lambda gid: glyphs[gid].get('class')
-    ann = sbgnml.from_graphml(diagram)
-    used = set()
-    L, R = '{%s}' % LAYOUT, '{%s}' % RENDER_NS
+    cls = lambda g: glyphs[g].get('class')
+    arcs = list(sb.iter(G + 'arc'))
+    ends = {a: (port_of.get(a.get('source'), a.get('source')), port_of.get(a.get('target'), a.get('target'))) for a in arcs}
+    into, out_of = defaultdict(list), defaultdict(list)
+    for a in arcs:
+        out_of[ends[a][0]].append(a); into[ends[a][1]].append(a)
+    pts = {a: [(float(e.get('x')), float(e.get('y'))) for e in a if etree.QName(e).localname in ('start', 'next', 'end')]
+           for a in arcs}
+    gates = [g for g in glyphs if cls(g) in GATES]  # in the file's order: the output is the same every run
+    used, links = set(), uses_links(diagram)
+    E = lambda parent, tag, **a: etree.SubElement(parent, tag, {k: str(v) for k, v in a.items()})
 
-    root = etree.Element('{%s}sbml' % CORE, nsmap={None: CORE, 'layout': LAYOUT, 'render': RENDER_NS, 'xsi': XSI},
+    root = etree.Element('{%s}sbml' % CORE, nsmap={None: CORE, 'layout': LAYOUT, 'render': sbgnml.RENDER, 'xsi': XSI},
                          level='3', version='1')
     root.set(L + 'required', 'false'); root.set(R + 'required', 'false')
     model = etree.SubElement(root, 'model', id=sid(diagram.name or 'map', used), name=diagram.name or 'map')
-    E = lambda parent, tag, **a: etree.SubElement(parent, tag, {k: str(v) for k, v in a.items()})
 
     # compartments: one per compartment name (biology keys entities by it), 'default' for entities outside any
     comp_ids = {}
     for i, d in N.items():
         if d.kind == 'Compartment' and label(d) not in comp_ids:
             comp_ids[label(d)] = sid('c_' + (label(d) or i), used)
-    names = {e.key[0] for e in bio.entities.values()}
-    if 'default' in names and 'default' not in comp_ids:
-        comp_ids['default'] = sid('default', used)
-    lc = E(model, 'listOfCompartments')
-    for name, c in comp_ids.items():
-        E(lc, 'compartment', id=c, name=name, spatialDimensions='3', size='1', constant='true')
+    if any(e.key[0] not in comp_ids for e in bio.entities.values()):
+        comp_ids.setdefault('default', sid('default', used))
+    if comp_ids:
+        lc = E(model, 'listOfCompartments')
+        for name, c in comp_ids.items():
+            el = E(lc, 'compartment', id=c, spatialDimensions='3', size='1', constant='true')
+            if name:
+                el.set('name', name)
 
     # species: one per entity; a source or sink drawn several times is several species (SBGN never clones the empty set)
-    species_of = {}  # glyph node id -> species id
-    ls = E(model, 'listOfSpecies')
-    lost = []
+    species_of, lost = {}, []  # glyph node id -> species id
+    ls = E(model, 'listOfSpecies') if bio.entities else None
     for e in bio.entities.values():
         d = N[e.glyphs[0]]
-        groups = [[g] for g in e.glyphs] if d.kind in ('EmptySet', 'SourceAndSink') else [e.glyphs]
-        for gs in groups:
+        sink = d.kind in ('EmptySet', 'SourceAndSink')
+        for gs in ([[g] for g in e.glyphs] if sink else [e.glyphs]):
             s = sid('s_' + (label(d) or d.kind), used)
-            sbo_t = next((UNIT_SBO[u] for u in d.units if u in UNIT_SBO), SBO_OF.get(d.kind, '0000285'))
-            el = E(ls, 'species', id=s, name=label(d), compartment=comp_ids.get(e.key[0], comp_ids.get('default', '')),
-                   hasOnlySubstanceUnits='false', boundaryCondition='true' if d.kind in ('EmptySet', 'SourceAndSink') else 'false',
-                   constant='false', sboTerm='SBO:' + sbo_t)
-            extra = ['state variable: %s' % (sv.value + ('@' + sv.variable if sv.variable else '')) for sv in e.state_variables if sv.value] + \
+            term = next((UNIT_SBO[u] for u in d.units if u in UNIT_SBO), SBO_OF.get(d.kind, '0000285'))
+            el = E(ls, 'species', id=s, compartment=comp_ids.get(e.key[0], comp_ids.get('default')),
+                   hasOnlySubstanceUnits='false', boundaryCondition='true' if sink else 'false', constant='false',
+                   sboTerm='SBO:' + term)
+            if label(d):
+                el.set('name', label(d))
+            notes = ['state variable: %s' % (sv.value + ('@' + sv.variable if sv.variable else '')) for sv in e.state_variables if sv.value] + \
                     ['unit of information: %s' % (('%s:' % u.prefix if u.prefix else '') + u.value) for u in sorted(e.units, key=str)
-                     if ('%s:%s' % (u.prefix, u.value)) not in UNIT_SBO] + \
+                     if '%s:%s' % (u.prefix, u.value) not in UNIT_SBO] + \
                     (['multimer: %d units' % d.count] if d.count > 1 else []) + (['hypothetical'] if d.dashed else [])
-            if extra:
+            if notes:
                 lost.append(label(d))
-                body = etree.SubElement(etree.SubElement(el, 'notes'), '{%s}body' % XHTML, nsmap={None: XHTML})
-                for line in extra:
-                    etree.SubElement(body, '{%s}p' % XHTML).text = line
-            family, urns = ann.get(label(d), (False, []))
-            uris = ['http://identifiers.org/%s:%s' % (sbgnml.DB[db], x.replace('%3A', ':').replace('CHEBI:', ''))
-                    for db, _, x in (u[len('urn:miriam:'):].rpartition(':') for u in urns) if db in sbgnml.DB]
+                body = etree.SubElement(etree.SubElement(el, 'notes'), '{%s}body' % sbgnml.XH, nsmap={None: sbgnml.XH})
+                for line in notes:
+                    etree.SubElement(body, '{%s}p' % sbgnml.XH).text = line
+            ann = of_node(d.data, links)  # this entity's own glyph: two entities of one name keep their own identifiers
+            uris = sbgnml.identifiers(ann[1]) if ann else []
             if uris:
                 el.set('metaid', sid('meta_' + s, used))
-                rdf = etree.SubElement(etree.SubElement(el, 'annotation'), '{%s}RDF' % RDF, nsmap={'rdf': RDF, 'bqbiol': BQ})
+                rdf = etree.SubElement(etree.SubElement(el, 'annotation'), '{%s}RDF' % RDF,
+                                       nsmap={'rdf': RDF, 'bqbiol': sbgnml.BQBIOL})
                 desc = etree.SubElement(rdf, '{%s}Description' % RDF, {'{%s}about' % RDF: '#' + el.get('metaid')})
-                bag = etree.SubElement(etree.SubElement(desc, '{%s}%s' % (BQ, 'hasVersion' if family else 'is')), '{%s}Bag' % RDF)
+                bag = etree.SubElement(etree.SubElement(desc, '{%s}%s' % (sbgnml.BQBIOL, 'hasVersion' if ann[0] else 'is')),
+                                       '{%s}Bag' % RDF)
                 for u in uris:
                     etree.SubElement(bag, '{%s}li' % RDF, {'{%s}resource' % RDF: u})
             for g in gs:
@@ -462,168 +476,161 @@ def write(diagram):
     if lost:
         report.say('changed', '%d species keep their state variables, units of information or multimer count only in their notes '
                    '(SBML core has no place for them): %s' % (len(lost), ', '.join(sorted(set(lost)))))
+    ent = lambda g: species_of.get(node_of.get(g))
 
-    # reactions, from the SBGN-ML arcs at each process glyph
-    arcs = list(sb.iter(G + 'arc'))
-    ends = lambda a: (port_of.get(a.get('source'), a.get('source')), port_of.get(a.get('target'), a.get('target')))
-    ent = lambda gid: species_of.get(node_of.get(gid))
-    gates = [g for g in glyphs if cls(g) in ('and', 'or', 'not')]  # in the file's order: the output is the same every run
-    lr = E(model, 'listOfReactions') if any(cls(g) in PROCESS_SBO for g in glyphs) else None
-    refs = {}  # SBGN-ML arc id -> (species reference id, role, process glyph, the gate's arc to the process or None)
-    gate_refs = {}  # gate glyph -> [(species reference id)] of its inputs, as modifiers of the process
-    left, reaction_of = [], {}
-    for p in (g for g in glyphs if cls(g) in PROCESS_SBO):
-        at = [a for a in arcs if p in ends(a)]
-        consumed = [a for a in at if a.get('class') == 'consumption']
-        rev = not consumed
-        r = reaction_of[p] = sid('r_' + node_of.get(p, p), used)
-        el = E(lr, 'reaction', id=r, reversible='true' if rev else 'false', fast='false', sboTerm='SBO:' + PROCESS_SBO[cls(p)])
-        sides = {'listOfReactants': [], 'listOfProducts': [], 'listOfModifiers': []}
-        for a in at:
-            s, t = ends(a)
-            c = a.get('class')
-            if c == 'consumption' and ent(s):
-                sides['listOfReactants'].append((a, ent(s), 'substrate', None, None))
-            elif c == 'production' and ent(t):
-                first = a.get('source', '').endswith('.1')
-                side = 'listOfReactants' if rev and first else 'listOfProducts'
-                sides[side].append((a, ent(t), 'substrate' if side == 'listOfReactants' else 'product', None, None))
-            elif c in MODIFIER_SBO and t == p and ent(s):
-                sides['listOfModifiers'].append((a, ent(s), ROLE[c], MODIFIER_SBO[c], None))
-            elif c in MODIFIER_SBO and t == p and s in gates:  # each input a modifier, drawn through the gate
-                for b in arcs:
-                    if ends(b)[1] == s and b.get('class') == 'logic arc' and ent(ends(b)[0]):
-                        sides['listOfModifiers'].append((b, ent(ends(b)[0]), ROLE[c], MODIFIER_SBO[c], a))
-                left.append('%s gate on %s' % (cls(s).upper(), label(N[node_of[p]]) if node_of.get(p) else p))
-        for lst, items in sides.items():
-            if not items:
+    def inputs(g, neg):
+        # a gate's inputs down to entities, through gates on gates: [(entity glyph, negated, the arcs from it up to g)]
+        out = []
+        for b in into[g]:
+            s = ends[b][0]
+            if b.get('class') != 'logic arc':
                 continue
-            le = E(el, lst)
-            for a, s, role, term, out in items:
-                ref = sid('sr_%s_%s' % (r, s), used)
-                if lst == 'listOfModifiers':
-                    E(le, 'modifierSpeciesReference', id=ref, species=s, sboTerm='SBO:' + term)
+            if s in glyphs and cls(s) in GATES:
+                out += [(x, n, chain + [b]) for x, n, chain in inputs(s, neg != (cls(s) == 'not'))]
+            elif ent(s):
+                out.append((s, neg, [b]))
+        return out
+
+    def through(a, c):
+        # the modifiers a modifier arc gives: from an entity one, from a gate one per input (a NOT turns its sign)
+        s = ends[a][0]
+        if ent(s):
+            return [(s, c, [a])]
+        if s in glyphs and cls(s) in GATES:
+            return [(x, NEGATED[c] if n else c, chain + [a]) for x, n, chain in inputs(s, cls(s) == 'not')]
+        return []
+
+    # reactions: one per process glyph with a reactant or product
+    procs, skipped, gated = [], [], []
+    for p in (g for g in glyphs if cls(g) in PROCESS_SBO):
+        rev = not any(a.get('class') == 'consumption' for a in into[p])
+        items = []  # (list, species glyph, role, SBO term or None, the arcs drawn as its line, line class)
+        for a in into[p]:
+            s, c = ends[a][0], a.get('class')
+            if c == 'consumption' and ent(s):
+                items.append(('listOfReactants', s, 'substrate', None, [a], c))
+            elif c in MODIFIER_SBO:
+                gated += [cls(ends[a][0]).upper()] if ends[a][0] in glyphs and cls(ends[a][0]) in GATES else []
+                items += [('listOfModifiers', x, ROLE[k], MODIFIER_SBO[k], chain, k) for x, k, chain in through(a, c)]
+        for a in out_of[p]:
+            t = ends[a][1]
+            if a.get('class') == 'production' and ent(t):
+                first = rev and a.get('source', '').endswith('.1')  # a reversible process: its first side the reactants
+                items.append(('listOfReactants' if first else 'listOfProducts', t, 'substrate' if first else 'product', None, [a],
+                              a.get('class')))
+        if not any(k != 'listOfModifiers' for k, *_ in items):
+            skipped.append(p); continue
+        r = sid('r_' + node_of.get(p, p), used)
+        lr = model.find('listOfReactions')
+        el = E(lr if lr is not None else E(model, 'listOfReactions'), 'reaction', id=r, reversible='true' if rev else 'false',
+               fast='false', sboTerm='SBO:' + PROCESS_SBO[cls(p)])
+        refs = []
+        for lst in ('listOfReactants', 'listOfProducts', 'listOfModifiers'):
+            mine = [x for x in items if x[0] == lst]
+            le = E(el, lst) if mine else None
+            for _, g, role, term, chain, c in mine:
+                ref = sid('sr_%s_%s' % (r, species_of[node_of[g]]), used)
+                if term:
+                    E(le, 'modifierSpeciesReference', id=ref, species=ent(g), sboTerm='SBO:' + term)
                 else:
-                    E(le, 'speciesReference', id=ref, species=s, stoichiometry='1', constant='true')
-                refs[a.get('id')] = (ref, role, p, out)
-    if left:
-        report.say('changed', 'logic gates kept as drawings, their inputs as modifiers of the process, drawn through the gate '
-                   '(SBML core has no logic gate): %s' % ', '.join(left))
-    if lr is not None and not len(lr):
-        model.remove(lr)
+                    E(le, 'speciesReference', id=ref, species=ent(g), stoichiometry='1', constant='true')
+                refs.append((ref, g, role, chain, c))
+        procs.append((p, r, refs))
+    if skipped:
+        report.say('left out', '%d process%s without a reactant or product left out' % (len(skipped), 'es' if len(skipped) > 1 else ''))
+    if gated:
+        report.say('changed', 'logic gates on processes drawn, their inputs written as modifiers of the process, a NOT input with '
+                   'the opposite sign (SBML core has no logic gate): %s' % ', '.join(gated))
+    # arcs into an entity (no process): drawings only, as general glyphs
+    loose = [(x, k, chain, ends[a][1]) for a in arcs if a.get('class') in MODIFIER_SBO and ent(ends[a][1])
+             for x, k, chain in through(a, a.get('class'))]
+    if loose:
+        report.say('changed', '%d arcs into an entity (no process) kept as drawings only, as SBML core has no influence'
+                   % len(loose))
+    dropped = sum(1 for a in arcs if a.get('class') == 'equivalence arc') + sum(1 for g in glyphs if cls(g) == 'equivalence')
+    if dropped:
+        report.say('left out', '%d equivalence arcs and operators left out (no place in SBML core)' % dropped)
 
     # the layout: the SBGN-ML drawing glyph by glyph
     lay = etree.SubElement(etree.SubElement(model, L + 'listOfLayouts'), L + 'layout')
     lay.set(L + 'id', sid('layout', used))
-    w = max([float(b.get('x')) + float(b.get('w')) for b in sb.iter(G + 'bbox')] or [0]) + 20
-    h = max([float(b.get('y')) + float(b.get('h')) for b in sb.iter(G + 'bbox')] or [0]) + 20
     LE = lambda parent, tag, **a: etree.SubElement(parent, L + tag, {L + k: str(v) for k, v in a.items()})
-    LE(lay, 'dimensions', width=repr(w), height=repr(h))
+    boxes = [b for b in sb.iter(G + 'bbox')]
+    LE(lay, 'dimensions', width=repr(max([float(b.get('x')) + float(b.get('w')) for b in boxes] or [0]) + 20),
+       height=repr(max([float(b.get('y')) + float(b.get('h')) for b in boxes] or [0]) + 20))
 
-    def bbox(parent, g):
-        b = g.find(G + 'bbox')
+    def bbox(parent, g, h=None):
+        b = glyphs[g].find(G + 'bbox') if g else None
         bb = LE(parent, 'boundingBox')
-        LE(bb, 'position', x=b.get('x'), y=b.get('y'))
-        LE(bb, 'dimensions', width=b.get('w'), height=b.get('h'))
+        LE(bb, 'position', x=b.get('x') if g else 0, y=b.get('y') if g else 0)
+        LE(bb, 'dimensions', width=b.get('w') if g else 0, height=h or (b.get('h') if g else 0))
 
-    def points_of(a):
-        return [(float(e.get('x')), float(e.get('y'))) for e in a if etree.QName(e).localname in ('start', 'next', 'end')]
-
-    def curve(parent, pts):
+    def curve(parent, chain, back=False):
+        line = [q for a in chain for q in pts[a]]
+        line = [q for k, q in enumerate(line) if not k or q != line[k - 1]][::-1 if back else 1]
         segs = LE(LE(parent, 'curve'), 'listOfCurveSegments')
-        for p0, p1 in zip(pts, pts[1:]):
-            s = LE(segs, 'curveSegment'); s.set('{%s}type' % XSI, 'LineSegment')
-            LE(s, 'start', x=repr(p0[0]), y=repr(p0[1])); LE(s, 'end', x=repr(p1[0]), y=repr(p1[1]))
+        for p0, p1 in zip(line, line[1:]):
+            sg = LE(segs, 'curveSegment'); sg.set('{%s}type' % XSI, 'LineSegment')
+            LE(sg, 'start', x=repr(p0[0]), y=repr(p0[1])); LE(sg, 'end', x=repr(p1[0]), y=repr(p1[1]))
 
-    gid = {}  # SBGN-ML glyph id -> layout glyph id
-    lines = {}  # SBGN-ML arc class -> the layout ids of its curves (Render's line styles); 'process': the reaction glyphs
-    texts = []  # (layout glyph id, text, SBGN-ML glyph)
-    comp_glyphs = [g for g in glyphs if cls(g) == 'compartment']
-    if comp_glyphs:
+    gid, texts = {}, []  # SBGN-ML glyph -> layout glyph id; (layout glyph id, text, SBGN-ML glyph, a compartment's)
+    lines = defaultdict(list)  # (SBGN-ML arc class, colour) -> the layout ids of its curves; ('process', None): reaction glyphs
+    comps = [g for g in glyphs if cls(g) == 'compartment' and node_of.get(g)]
+    if comps:
         lcg = LE(lay, 'listOfCompartmentGlyphs')
-        for g in comp_glyphs:
-            d = N[node_of[g]]
+        for g in comps:
             gid[g] = sid('cg_' + g, used)
-            cg = LE(lcg, 'compartmentGlyph', id=gid[g], compartment=comp_ids[label(d)])
-            bbox(cg, glyphs[g]); texts.append((gid[g], label(d), glyphs[g], True))
-    sp = [g for g in glyphs if node_of.get(g) in species_of]
+            bbox(LE(lcg, 'compartmentGlyph', id=gid[g], compartment=comp_ids[label(N[node_of[g]])]), g)
+            texts.append((gid[g], label(N[node_of[g]]), g, True))
+    sp = [g for g in glyphs if g in species_of or ent(g)]
     if sp:
         lsg = LE(lay, 'listOfSpeciesGlyphs')
         for g in sp:
             gid[g] = sid('sg_' + g, used)
-            sg = LE(lsg, 'speciesGlyph', id=gid[g], species=species_of[node_of[g]])
-            bbox(sg, glyphs[g])
-            if label(N[node_of[g]]):
-                texts.append((gid[g], label(N[node_of[g]]), glyphs[g], False))
-    procs = [g for g in glyphs if cls(g) in PROCESS_SBO]
+            bbox(LE(lsg, 'speciesGlyph', id=gid[g], species=ent(g)), g)
+            texts.append((gid[g], label(N[node_of[g]]), g, False))
     if procs:
         lrg = LE(lay, 'listOfReactionGlyphs')
-        for p in procs:
+        for p, r, refs in procs:
             gid[p] = sid('rg_' + p, used)
-            rg = LE(lrg, 'reactionGlyph', id=gid[p], reaction=reaction_of[p])
-            ports = [port_at[q.get('id')] for q in glyphs[p].findall(G + 'port')]
+            rg = LE(lrg, 'reactionGlyph', id=gid[p], reaction=r)
+            ports = [(float(q.get('x')), float(q.get('y'))) for q in glyphs[p].findall(G + 'port')]
             if len(ports) == 2:
-                curve(rg, ports)
-                lines.setdefault('process', []).append(gid[p])
+                segs = LE(LE(rg, 'curve'), 'listOfCurveSegments')
+                sg = LE(segs, 'curveSegment'); sg.set('{%s}type' % XSI, 'LineSegment')
+                LE(sg, 'start', x=repr(ports[0][0]), y=repr(ports[0][1])); LE(sg, 'end', x=repr(ports[1][0]), y=repr(ports[1][1]))
+                lines['process', None].append(gid[p])
             else:
-                bbox(rg, glyphs[p])
-            lsr = None
-            for a in arcs:
-                if a.get('id') not in refs or refs[a.get('id')][2] != p:
-                    continue
-                ref, role, _, out = refs[a.get('id')]
-                s, t = ends(a)
-                other = t if s == p else s
-                pts = points_of(a)
-                if a.get('class') == 'consumption':
-                    pts = pts[::-1]  # from the process to the species (Layout 3.10.1)
-                if out is not None:
-                    pts = pts + points_of(out)  # a gate's input: on through the gate to the process
-                    lines_cls = out.get('class')
-                else:
-                    lines_cls = a.get('class')
-                if lsr is None:
-                    lsr = LE(rg, 'listOfSpeciesReferenceGlyphs')
-                srg = LE(lsr, 'speciesReferenceGlyph', id=sid('srg_' + a.get('id'), used), speciesReference=ref,
-                         speciesGlyph=gid[other], role=role)
-                curve(srg, pts)
-                lines.setdefault(lines_cls, []).append(srg.get(L + 'id'))
-    # logic gates (their box and name; their lines are the modifiers' above) and arcs between entities: general glyphs
-    extra = []
-    for g in gates:
-        gid[g] = sid('gg_' + g, used)
-        extra.append(g)
-    loose = [a for a in arcs if a.get('id') not in refs and a.get('class') in MODIFIER_SBO
-             and not set(ends(a)) & set(gates) and all(e in gid for e in ends(a))]
+                bbox(rg, p)
+            lsr = LE(rg, 'listOfSpeciesReferenceGlyphs')
+            for ref, g, role, chain, c in refs:
+                srg = LE(lsr, 'speciesReferenceGlyph', id=sid('srg_' + ref, used), speciesReference=ref, speciesGlyph=gid[g],
+                         role=role)
+                curve(srg, chain, back=c == 'consumption')  # from the process to a reactant or product (Layout 3.10.1)
+                lines[c, colour_of.get(chain[0].get('id'))].append(srg.get(L + 'id'))
+    # logic gates (their box and name; their lines are drawn with the modifiers above) and the arcs into entities
     if gates or loose:
         lag = LE(lay, 'listOfAdditionalGraphicalObjects')
         for g in gates:
-            gg = LE(lag, 'generalGlyph', id=gid[g])
-            bbox(gg, glyphs[g]); texts.append((gid[g], cls(g).upper(), glyphs[g], False))
-        for a in loose:
-            s, t = ends(a)
-            pts = points_of(a)
-            gg = LE(lag, 'generalGlyph', id=sid('gi_' + a.get('id'), used))
-            curve(gg, pts[-1:] * 2)
-            lrf = LE(gg, 'listOfReferenceGlyphs')
-            rf = LE(lrf, 'referenceGlyph', id=sid('rf_' + a.get('id'), used), glyph=gid[t], role=ROLE.get(a.get('class'), 'modifier'))
-            curve(rf, pts)
-            lines.setdefault(a.get('class'), []).append(rf.get(L + 'id'))
-        if not len(lag):
-            lay.remove(lag)
-        if loose:
-            report.say('changed', '%d arcs between entities kept as drawings only (SBML core has no influence)' % len(loose))
+            gid[g] = sid('gg_' + g, used)
+            bbox(LE(lag, 'generalGlyph', id=gid[g]), g)
+            texts.append((gid[g], cls(g).upper(), g, False))
+        for x, c, chain, t in loose:
+            gg = LE(lag, 'generalGlyph', id=sid('gi_' + chain[-1].get('id'), used), reference=ent(x))
+            bbox(gg, None)
+            rf = LE(LE(gg, 'listOfReferenceGlyphs'), 'referenceGlyph', id=sid('rf_' + chain[-1].get('id'), used), glyph=gid[t],
+                    reference=ent(t), role=ROLE[c])
+            curve(rf, chain)
+            lines[c, colour_of.get(chain[0].get('id'))].append(rf.get(L + 'id'))
+    texts = [x for x in texts if x[1]]
     if texts:
         lt = LE(lay, 'listOfTextGlyphs')
-        for g, text, sg, top in texts:
+        for k, (g, text, sg, top) in enumerate(texts):
             t = LE(lt, 'textGlyph', id=sid('tg_' + g, used), graphicalObject=g, text=text)
-            bbox(t, sg)
-            if top:  # a compartment's name: a strip along its top
-                t.find('.//' + L + 'dimensions').set(L + 'height', '24')
-    order = ['dimensions', 'listOfCompartmentGlyphs', 'listOfSpeciesGlyphs', 'listOfReactionGlyphs', 'listOfTextGlyphs',
-             'listOfAdditionalGraphicalObjects']  # the order libSBML writes
-    lay[:] = sorted(lay, key=lambda c: order.index(etree.QName(c).localname))
-    render(lay, glyphs, gid, {g: N[node_of[g]] for g in gid if g in node_of}, lines, used)
+            bbox(t, sg, h='24' if top else None)  # a compartment's name: a strip along its top
+            texts[k] = (t.get(L + 'id'), N[node_of[sg]].font if node_of.get(sg) else None)
+    render(lay, glyphs, gid, {g: N[node_of[g]] for g in gid if g in node_of and cls(g) not in PROCESS_SBO}, lines, texts, used)
+    lay[:] = sorted(lay, key=lambda c: LAYOUT_ORDER.index(etree.QName(c).localname))
     return etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8').decode('utf-8')
 
 
@@ -640,65 +647,57 @@ HEADS_R = {
 }
 
 
-def render(lay, glyphs, gid, nodes, lines, used):
-    # Render: a style per glyph that has a colour of its own (a fill; a compartment's outline colour and width), its
-    # shape by its SBGN class, every attribute written (Render fixes no defaults: specifications/bergmann-2018.md)
-    R = '{%s}' % RENDER_NS
-    groups = {}
-    for g, lg in gid.items():
-        d = nodes.get(g)
-        if d is None:
-            continue
+def render(lay, glyphs, gid, nodes, lines, texts, used):
+    # Render: every box a style (its fill, outline colour and width, a shape by its SBGN class), every line a style with
+    # its head, every label a style with its font size; every attribute written, as Render fixes no defaults
+    # (specifications/bergmann-2018.md) and a strict reader draws an unstyled line as nothing
+    R, L, X = '{%s}' % sbgnml.RENDER, '{%s}' % LAYOUT, '{%s}' % XSI
+    boxes = defaultdict(list)
+    for g, d in nodes.items():
         c = glyphs[g].get('class')
-        key = (d.fill or '#FFFFFF', d.line or '#000000', d.weight or 1, SHAPE.get(c, 'rectangle'), RADIUS.get(c, '0'))
-        groups.setdefault(key, []).append(lg)
-    if not groups:
+        boxes[d.fill or '#FFFFFF', d.line or '#000000', d.weight or 1, SHAPE.get(c, 'rectangle'), RADIUS.get(c, '0')].append(gid[g])
+    fonts = defaultdict(list)
+    for t, size in texts:
+        fonts[size or 10].append(t)
+    if not (boxes or lines or fonts):
         return
-    lri = etree.SubElement(lay, R + 'listOfRenderInformation')
-    lri.set(R + 'versionMajor', '1'); lri.set(R + 'versionMinor', '0')
-    ri = etree.SubElement(lri, R + 'renderInformation')
-    ri.set(R + 'id', sid('render', used)); ri.set(R + 'programName', 'map-converter')
-    L, X = '{%s}' % LAYOUT, '{%s}' % XSI
-    heads = {c: v for c, v in HEADS_R.items() if c in lines}
+    lri = etree.SubElement(lay, R + 'listOfRenderInformation', {R + 'versionMajor': '1', R + 'versionMinor': '0'})
+    ri = etree.SubElement(lri, R + 'renderInformation', {R + 'id': sid('render', used), R + 'programName': 'map-converter'})
+    heads = [c for c in HEADS_R if any(k == c for k, _ in lines)]
     if heads:
         le = etree.SubElement(ri, R + 'listOfLineEndings')
-        for c, ((x, y, w, h), shapes) in heads.items():
-            e = etree.SubElement(le, R + 'lineEnding')
-            e.set(R + 'id', 'head_' + c.replace(' ', '_')); e.set(R + 'enableRotationalMapping', 'true')
+        for c in heads:
+            (x, y, w, h), shapes = HEADS_R[c]
+            e = etree.SubElement(le, R + 'lineEnding', {R + 'id': 'head_' + c.replace(' ', '_'), R + 'enableRotationalMapping': 'true'})
             bb = etree.SubElement(e, L + 'boundingBox')
             etree.SubElement(bb, L + 'position', {L + 'x': str(x), L + 'y': str(y)})
             etree.SubElement(bb, L + 'dimensions', {L + 'width': str(w), L + 'height': str(h)})
             g = etree.SubElement(e, R + 'g')
-            for shape, fill, pts in shapes:
+            for shape, fill, ps in shapes:
                 el = etree.SubElement(g, R + shape, {R + 'stroke': '#000000', R + 'stroke-width': '1', R + 'fill': fill})
                 if shape == 'polygon':
                     lo = etree.SubElement(el, R + 'listOfElements')
-                    for px, py in pts:
+                    for px, py in ps:
                         etree.SubElement(lo, R + 'element', {X + 'type': 'RenderPoint', R + 'x': str(px), R + 'y': str(py)})
                 elif shape == 'ellipse':
-                    for a, v in (('cx', '50%'), ('cy', '50%'), ('rx', '50%'), ('ry', '50%')):
-                        el.set(R + a, v)
+                    el.attrib.update({R + 'cx': '50%', R + 'cy': '50%', R + 'rx': '50%', R + 'ry': '50%'})
                 else:
-                    for a, v in (('x', '0'), ('y', '0'), ('width', '100%'), ('height', '100%')):
-                        el.set(R + a, v)
+                    el.attrib.update({R + 'x': '0', R + 'y': '0', R + 'width': '100%', R + 'height': '100%'})
     ls = etree.SubElement(ri, R + 'listOfStyles')
-    for c, ids in lines.items():  # every curve styled: a strict reader draws an unstyled curve as nothing
-        st = etree.SubElement(ls, R + 'style')
-        st.set(R + 'id', sid('line_' + c.replace(' ', '_'), used)); st.set(R + 'idList', ' '.join(ids))
-        g = etree.SubElement(st, R + 'g', {R + 'stroke': '#000000', R + 'stroke-width': '1', R + 'fill': 'none'})
+    style = lambda name, ids, **a: etree.SubElement(
+        etree.SubElement(ls, R + 'style', {R + 'id': sid(name, used), R + 'idList': ' '.join(ids)}), R + 'g',
+        {R + k.replace('_', '-'): str(v) for k, v in a.items()})
+    for (c, colour), ids in lines.items():
+        g = style('line_' + c.replace(' ', '_'), ids, stroke=colour or '#000000', stroke_width=1, fill='none')
         if c in heads:
             g.set(R + 'endHead', 'head_' + c.replace(' ', '_'))
-    for k, ((fill, stroke, width, shape, radius), ids) in enumerate(groups.items()):
-        st = etree.SubElement(ls, R + 'style')
-        st.set(R + 'id', sid('style_%d' % (k + 1), used)); st.set(R + 'idList', ' '.join(ids))
-        g = etree.SubElement(st, R + 'g')
-        for a, v in (('stroke', stroke), ('stroke-width', '%g' % width), ('fill', fill), ('font-family', 'sans-serif'),
-                     ('font-size', '10'), ('text-anchor', 'middle'), ('vtext-anchor', 'middle')):
-            g.set(R + a, v)
+    for (fill, stroke, width, shape, radius), ids in boxes.items():
+        g = style('box', ids, stroke=stroke, stroke_width='%g' % width, fill=fill)
         el = etree.SubElement(g, R + shape)
         if shape == 'ellipse':
-            for a, v in (('cx', '50%'), ('cy', '50%'), ('rx', '50%'), ('ry', '50%')):
-                el.set(R + a, v)
+            el.attrib.update({R + 'cx': '50%', R + 'cy': '50%', R + 'rx': '50%', R + 'ry': '50%'})
         else:
-            for a, v in (('x', '0'), ('y', '0'), ('width', '100%'), ('height', '100%'), ('rx', radius), ('ry', radius)):
-                el.set(R + a, v)
+            el.attrib.update({R + 'x': '0', R + 'y': '0', R + 'width': '100%', R + 'height': '100%', R + 'rx': radius, R + 'ry': radius})
+    for size, ids in fonts.items():
+        style('text', ids, stroke='#000000', font_family='sans-serif', font_size='%g' % size, text_anchor='middle',
+              vtext_anchor='middle')

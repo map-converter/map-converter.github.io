@@ -32,6 +32,12 @@ ARC = {'production': 'production', 'catalysis': 'catalysis', 'inhibition': 'inhi
 DB = {'obo.chebi': 'CHEBI', 'hgnc': 'hgnc', 'hgnc.symbol': 'hgnc.symbol', 'uniprot': 'uniprot'}
 
 
+def identifiers(urns):
+    # MIRIAM URNs as identifiers.org links in Newt's form (db:id), those of the databases in DB
+    return ['http://identifiers.org/%s:%s' % (DB[db], x.replace('%3A', ':').replace('CHEBI:', ''))
+            for db, _, x in (u[len('urn:miriam:'):].rpartition(':') for u in urns) if db in DB]
+
+
 def xml_id(i):
     # yEd's nested ids (n0::n1) are not XML ids
     return re.sub(r'[^\w.-]', '_', i if re.match(r'[A-Za-z_]', i) else '_' + i)
@@ -230,11 +236,7 @@ def write(diagram, newt=False):
         if lab not in ann:
             return
         family, urns = ann[lab]
-        uris = []
-        for u in urns:
-            db, _, x = u[len('urn:miriam:'):].rpartition(':')
-            if db in DB:
-                uris.append('http://identifiers.org/%s:%s' % (DB[db], x.replace('%3A', ':').replace('CHEBI:', '')))
+        uris = identifiers(urns)
         if not uris:
             return
         e = etree.SubElement(g, S + 'extension')

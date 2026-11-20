@@ -70,16 +70,21 @@ of one map look the same. The meaning is the map's biology, as the other formats
   reversible: the products at its first port are written as reactants. Modifiers by their SBO term: catalysis 13,
   inhibition 20, stimulation 459, necessary stimulation 461, modulation 594.
 - A logic gate on a process: each input of the gate is a modifier of the process, with the SBO term of the gate's arc
-  (SBML core has no gate). The gate is drawn (a general glyph with its box and name) and each input's line runs on
-  through the gate to the process. Said under the map.
-- Arcs between entities (no process) are drawn as general glyphs and have no meaning in SBML core. Said.
+  (SBML core has no gate). Gates feeding gates are followed down to their entities. An input of a NOT gate takes the
+  opposite sign: NOT A stimulating a process writes A as its inhibitor. The gate is drawn (a general glyph with its box
+  and name) and each input's line runs on through the gate, or gates, to the process. Said under the map.
+- Arcs into an entity (no process between, with or without a gate) are drawn as general glyphs, each naming its source
+  species and drawing a line to its target, and have no meaning in SBML core. Said. Equivalence arcs and operators are
+  left out and said.
+- A process with no reactant or product is left out and said.
 - Layout: a compartment glyph per compartment glyph, a species glyph per entity glyph, a reaction glyph per process
   (a line between its two ports), a species reference glyph per arc, its curve the arc's points, from the process to
   the species for reactants and products and from the species to the process for modifiers (Layout 3.10.1). A text
   glyph per name, a compartment's name in a strip along its top.
 - Render: every glyph that draws a box has a style (its fill, outline colour and width, a shape by its kind: rounded
-  rectangle, rectangle or ellipse), every line a style with its SBGN head as a line ending (production, stimulation,
-  catalysis, inhibition, necessary stimulation, modulation). Render fixes no defaults, so every attribute is written.
+  rectangle, rectangle or ellipse), every line a style with its colour and its SBGN head as a line ending (production,
+  stimulation, catalysis, inhibition, necessary stimulation, modulation), every name a style with its font size. Render
+  fixes no defaults, so every attribute is written.
 - Checked: every reference map writes SBML that libSBML reads without an error, Layout and Render included;
   SBMLNetwork draws them. Read back, each CellDesigner reference map keeps its entities and reactions within the limits
   above (tests/test_sbml_write.py).
