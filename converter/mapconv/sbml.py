@@ -183,6 +183,33 @@ def qual_lines(model, lay, nodes, arcs, glyphs_of):
     return drawn
 
 
+def qual_rules(doc):
+    # an SBML-qual file's Boolean rules from its MathML, as tools read them: {qualitative species id: rule}, a rule as
+    # sbml.write_qual takes one (('var', id), ('true',), ('false',), ('not', f), ('and' | 'or', [f, ...])); a level
+    # compared with 1 (or above 0) is the variable, with 0 its negation. A node with no transition has no rule
+    def rule(e):
+        k = etree.QName(e).localname
+        if k in ('true', 'false'):
+            return (k,)
+        c = [x for x in e if isinstance(x.tag, str)]
+        op = etree.QName(c[0]).localname
+        if op in ('and', 'or'):
+            return (op, [rule(x) for x in c[1:]])
+        if op == 'not':
+            return ('not', rule(c[1]))
+        ci = next(x.text.strip() for x in c[1:] if etree.QName(x).localname == 'ci')
+        n = next(float(x.text) for x in c[1:] if etree.QName(x).localname == 'cn')
+        on = (op == 'eq' and n == 1) or (op == 'geq' and n == 1) or (op == 'gt' and n == 0) or (op == 'neq' and n == 0)
+        return ('var', ci) if on else ('not', ('var', ci))
+    out = {}
+    for t in all_(doc, 'transition'):
+        o = attr(next(iter(all_(t, 'output'))), 'qualitativeSpecies')
+        ft = next(iter(all_(t, 'functionTerm')), None)
+        m = kid(ft, 'math') if ft is not None else None
+        out[o] = rule(next(x for x in m if isinstance(x.tag, str))) if m is not None else ('false',)
+    return out
+
+
 def transitions(model, acts, arcs, skipped, drawn=()):
     # SBML-qual transitions not drawn as lines as Activity Flow influences, drawn straight from each input's box to each
     # output's: the sign from the input, else from the function terms (signs)
@@ -429,9 +456,20 @@ LAYOUT_ORDER = ('dimensions', 'listOfCompartmentGlyphs', 'listOfSpeciesGlyphs', 
                 'listOfAdditionalGraphicalObjects', 'listOfRenderInformation')  # the order libSBML writes
 
 
+def ascii_name(s):
+    # a name in ASCII letters, digits and underscores, a Greek letter spelt out (α: alpha), anything else an underscore
+    import unicodedata
+    def ch(c):
+        if c.isascii():
+            return c if c.isalnum() else '_'
+        n = unicodedata.name(c, '')
+        return n.split()[-1].lower() if n.startswith('GREEK') and 'LETTER' in n else '_'
+    return ''.join(ch(c) for c in s)
+
+
 def sid(s, used):
     # an SBML SId (letters, digits, underscores, not starting with a digit), unique among those used
-    s = re.sub(r'\W', '_', s, flags=re.ASCII)
+    s = ascii_name(s)
     s = s if re.match(r'[A-Za-z_]', s) else '_' + s
     k, out = 1, s
     while out in used:
@@ -838,10 +876,11 @@ def mathml(parent, f):
             mathml(a, x)
 
 
-def write_qual(diagram, rules=None):
+def write_qual(diagram, rules=None, names=None):
     # rules: {node id: rule} to write in place of the map's own reading, a rule as an expression of node ids
     # (('var', id), ('true',), ('not', f), ('and' | 'or', [f, ...])); an id is an activity's glyph or a delay gate. A tool
-    # that knows more than the drawing (pd2af-converter's engine, from a Process Description map) gives them
+    # that knows more than the drawing (pd2af-converter's engine, from a Process Description map) gives them, and with
+    # them its names for the nodes ({node id: name}), so its other outputs and this file name the nodes alike
     from .biology import label, PROCESSES
     from .graphml import DELAY
     from .layout import centre
@@ -880,14 +919,15 @@ def write_qual(diagram, rules=None):
     count = defaultdict(int)
     for e in ents:
         count[base(e)] += 1
-    qs = {e.id: sid(base(e) + ('_' + '_'.join(sv.value for sv in e.state_variables if sv.value)
+    qs = {e.id: sid(names[e.id] if names and e.id in names else
+                    base(e) + ('_' + '_'.join(sv.value for sv in e.state_variables if sv.value)
                                if count[base(e)] > 1 and any(sv.value for sv in e.state_variables) else ''), used)
           for e in ents}
     var = lambda i: qs[glyph_of[i]]
     delays = {}  # a delay gate -> the node that copies its input
     for i in (i for i in ops if gate(i) == 'delay'):
         src = [b.source for b in into[i] if b.source in glyph_of]
-        delays[i] = sid('delay_' + (var(src[0]) if src else i), used)
+        delays[i] = sid(names[i] if names and i in names else 'delay_' + (var(src[0]) if src else i), used)
 
     def term(i, seen=()):
         # what a glyph stands for in a rule: an activity's level, or a gate's function of its inputs (every line into
@@ -923,9 +963,9 @@ def write_qual(diagram, rules=None):
                 polarity(x, neg != (f[0] == 'not'), out)
         return out
 
-    given = rules
+    given, own = rules, rules is None  # own: the rules read off the drawing
     rules, unknown_of, unknown = {}, {}, []
-    for e in ([] if given is not None else ents):
+    for e in (ents if own else []):
         arcs = [a for g in e.glyphs for a in into[g]]
         kind = lambda a: a.head if a.head in SIGN else 'stimulation' if a.head is None and a.source in ops else None
         terms = lambda h: [t for a in arcs if kind(a) in h for t in [term(a.source)] if t]
@@ -939,14 +979,17 @@ def write_qual(diagram, rules=None):
             rules[v] = ('and', parts) if len(parts) > 1 else parts[0]
         elif unk:
             rules[v] = ('var', v)  # unknown influences only: the node keeps its level, as an input does
-    for i, v in ([] if given is not None else delays.items()):
+    for i, v in (delays.items() if own else []):
         ins = [t for b in into[i] for t in [term(b.source)] if t]
         if ins:
             rules[v] = ins[0] if len(ins) == 1 else ('or', ins)
         else:
             said.append('delay without an input, left out')
-    if given is not None:  # node ids to qualitative species
-        name = lambda i: var(i) if i in glyph_of else delays[i]
+    if not own:  # node ids to qualitative species
+        def name(i):
+            if i in glyph_of or i in delays:
+                return var(i) if i in glyph_of else delays[i]
+            raise ValueError('a rule names %s, which is neither an activity nor a delay gate of the map' % i)
         to_qs = lambda f: ('var', name(f[1])) if f[0] == 'var' else ('not', to_qs(f[1])) if f[0] == 'not' else \
             (f[0], [to_qs(x) for x in f[1]]) if f[0] in ('and', 'or') else f
         rules = {name(i): to_qs(f) for i, f in given.items() if f != ('var', i)}  # a node that keeps itself: an input
@@ -976,7 +1019,7 @@ def write_qual(diagram, rules=None):
             for x in unknown_of.get(v, []):
                 for k in polarity(x):
                     ins.setdefault(k, 'unknown')
-            li = QE(el, 'listOfInputs')
+            li = QE(el, 'listOfInputs') if ins else None  # a constant rule (1) has none: an empty list is invalid
             for x, sg in ins.items():
                 QE(li, 'input', id=sid('in_%s_%s' % (v, x), used), qualitativeSpecies=x, transitionEffect='none', sign=sg,
                    thresholdLevel=1)
