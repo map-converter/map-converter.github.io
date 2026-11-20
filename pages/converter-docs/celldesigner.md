@@ -613,8 +613,8 @@ Geometry of a main line:
 The rules above are for CellDesigner (as drawn), `-drawn.xml`. CellDesigner
 (straight & bends), `-bends.xml`, has the drawing below without the moves. CellDesigner (advanced) keeps the
 tidy moves (`cd_tidy.py`): main lines up to 10 px off straightened,
-the end of a level line into a larger node beside its centre moved onto that node's centre line (iNOS CaM
-23.6 px; moved 25 px by hand twice), a modifier up to 15 px onto its process glyph, on a drawing with the
+the other end of a level line into a larger node beside its centre moved in line with where the line meets
+that node, its centre or the place it takes (iNOS CaM 23.6 px onto the centre line; moved 25 px by hand twice), a modifier up to 15 px onto its process glyph, on a drawing with the
 process glyph placed only for a modifier straight across that could not be moved. Straight line moves no
 node.
 
