@@ -727,7 +727,7 @@ name, set in CellDesigner by right-click, Change Font (window Change Species Nam
 Sites, states, structural states and units of information carry none: CellDesigner draws them at fixed sizes, and no
 file changes them. No font family is stored.
 
-Measured in two PDF exports kept in viewer-source/viewer-source `notes/check-files/`: `glutaminase-celldesigner-edited`
+Measured in two PDF exports kept with the viewer's check files: `glutaminase-celldesigner-edited`
 (names at 14 from our writer) and `font-sizes/font-sizes-celldesigner-user` (made from a new file in CellDesigner
 4.4.2 by the user: proteins left at the default, one set to 14). Text is drawn as outlines, so each size comes from
 letter heights against a name of known size: at 12 the flat capital P is 8.67, the round O 9.08; at 14 they are
