@@ -832,7 +832,7 @@ def read(path):
     for rx in xs(r, 's:model/s:listOfReactions/s:reaction'):
         x = f(rx, 's:annotation/cd:extension')
         typ = f(x, 'cd:reactionType').text
-        rid = rx.get('id')
+        rid = rx.get('id') or rx.get('metaid')  # an id is required by SBML, but VMH's Recon2 has a reaction with only a metaid
         if typ in REDUCED_TYPES or typ == 'BOOLEAN_LOGIC_GATE':
             refs(rx) and unplaced.append(rid)
         br, bp = list(xs(x, 'cd:baseReactants/cd:baseReactant')), list(xs(x, 'cd:baseProducts/cd:baseProduct'))
@@ -910,8 +910,9 @@ def read(path):
             n = stoich.get((alias, into))
             if into and not reversible:
                 arcs.append(Arc(id='%s_%s' % (rid, alias), source=alias, target=rid, points=list(pts), source_at=at, count=n))
-            else:
-                arcs.append(Arc(id='%s_%s' % (rid, alias), source=rid, target=alias, head='production', points=list(pts), target_at=at, count=n))
+            else:  # a reversible reaction's reactant drawn out of the process: its bends from the process on
+                arcs.append(Arc(id='%s_%s' % (rid, alias), source=rid, target=alias, head='production',
+                                points=list(pts)[::-1] if into else list(pts), target_at=at, count=n))
         for alias, into, bends, at in lines:
             flow(alias, into, bends, at)
         for tag, into in (('cd:listOfReactantLinks/cd:reactantLink', True), ('cd:listOfProductLinks/cd:productLink', False)):
