@@ -150,16 +150,15 @@ then write it. Examples: the converter's own SBGN-ML of every test map, and file
   their arcs are left out there, said once (`graphml.without_tags`).
 - Left out and printed: what the maps do not draw (annotation glyphs, clone markers), and arcs of other classes. Association and dissociation are read as the
   generic process (MINERVA, Newt).
-- Perturbing agent and phenotype: the maps have one glyph for both, the
-  phenotype, as CellDesigner has (PHENOTYPE), which also stands for a submap. A perturbing agent is
-  read as a phenotype, and so is yEd's Submap glyph (SREBP's "Transcription of target
-  genes" and "Cholesterol biosynthesis": the palette offers the glyph, the
-  map means a phenotype). Written to SBGN-ML, an arc leaving a phenotype is kept and printed: an
-  SBGN phenotype takes no outgoing arc, so libsbgn's PD rules flag it, and whether the glyph is a perturbing agent,
-  a submap or neither is not guessed. The phenotype stays a phenotype, with every arc (SREBP keeps "Transcription of
-  target genes", SREBP2's stimulation of it and its arc to "Cholesterol biosynthesis"). A phenotype read from a
-  CellDesigner file with the note line `SBGN class: submap` or `SBGN class: perturbing agent` (written by this
-  converter) is written back as that glyph, its arcs kept without a warning.
+- Perturbing agent, submap and phenotype: CellDesigner has one glyph for all three (PHENOTYPE). In GraphML each has
+  yEd's own glyph: yEd's PerturbingAgent and Submap are read as the phenotype with the node property SBGN class
+  (perturbing agent, submap), written to SBGN-ML as that glyph with every arc, in and out, and to CellDesigner as a
+  PHENOTYPE with the note line `SBGN class: ...`; a glyph changed to the Phenotype in yEd is a phenotype again. A
+  Submap with terminals on its border is a submap with its terminals (above). SREBP's "Transcription of target genes"
+  and "Cholesterol biosynthesis", yEd Submap glyphs with direct arcs, are submaps. Written to SBGN-ML, an arc leaving
+  a plain phenotype is kept and printed: an SBGN phenotype takes no outgoing arc, so libsbgn's PD rules flag it, and
+  whether it stands for a perturbing agent, a submap or neither is not guessed from its arcs. Direct arcs to and from
+  a submap, without tags, are kept as drawn (libsbgn's PD rules flag them too; Newt opens them).
 
 ### Activity Flow (read only)
 
