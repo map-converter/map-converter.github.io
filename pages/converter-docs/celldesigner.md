@@ -163,8 +163,9 @@ MINERVA (glycolysis v01).
 
 - Residue sites carry no name: the converter writes only the modification
   state, so CellDesigner shows the symbol in the circle (P, Ac, Ub, Me, ...)
-  and no site label. Site names (S314) are left out because
-  MINERVA does not show them. CellDesigner 4.4.2 draws a named residue's site as text beside its circle, where it
+  and no site label. The sites go into the species' notes instead, one line
+  `PTM: P@S1177 Pa@C26 Pa@C15 My@G2`: every site of the species, its state
+  variables' first, then the property PTM's; read back into PTM. CellDesigner 4.4.2 draws a named residue's site as text beside its circle, where it
   runs over the species' name (eNOS with S1177, C15, C26, G2: the name unreadable). Nodes of one protein share one residue when
   the icons name the same site (Pa@26), wherever they sit; icons without a
   site share one by place. By place alone, eNOS, with 4 sites
