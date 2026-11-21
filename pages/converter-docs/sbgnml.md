@@ -157,7 +157,9 @@ then write it. Examples: the converter's own SBGN-ML of every test map, and file
   map means a phenotype). Written to SBGN-ML, an arc leaving a phenotype is kept and printed: an
   SBGN phenotype takes no outgoing arc, so libsbgn's PD rules flag it, and whether the glyph is a perturbing agent,
   a submap or neither is not guessed. The phenotype stays a phenotype, with every arc (SREBP keeps "Transcription of
-  target genes", SREBP2's stimulation of it and its arc to "Cholesterol biosynthesis").
+  target genes", SREBP2's stimulation of it and its arc to "Cholesterol biosynthesis"). A phenotype read from a
+  CellDesigner file with the note line `SBGN class: submap` or `SBGN class: perturbing agent` (written by this
+  converter) is written back as that glyph, its arcs kept without a warning.
 
 ### Activity Flow (read only)
 
@@ -211,7 +213,7 @@ SREBP's stimulation arcs to and between submaps (reduced notation).
 
 The files for Newt of every Atlas map, and the way back as GraphML for yEd, are made by
 `sh tools/sbgn_test.sh <folder>`.
-`tests/external/newt/pd/` also holds the samples as Newt saves them in CellDesigner and GPML, for later.
+`tests/external/newt/pd/` also holds the samples as Newt saves them in CellDesigner and GPML, for later. 
 
 ## Notes
 

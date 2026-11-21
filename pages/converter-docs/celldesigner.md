@@ -353,6 +353,11 @@ CellDesigner (HSP90 + CAV1:CaM:eNOS -> CaM:HSP90:CAV1:eNOS + CaM).
   transcription). When it is AND, the arc is left out with a message.
 - Submap: no CellDesigner symbol; a PHENOTYPE at the yEd box (the SREBP
   file `F005-srebp/sources/F005-srebp-v01-cd442-phenotype.xml`).
+- Phenotype, submap and perturbing agent share CellDesigner's PHENOTYPE. A species written from a submap or a
+  perturbing agent (Activity Flow's perturbation too, written as a perturbing agent) carries the line
+  `SBGN class: submap` (or `perturbing agent`) first in its notes; reading it back, on a PHENOTYPE only, gives that class again, so SBGN-ML gets the submap or perturbing
+  agent and GraphML keeps it as the node property SBGN class. A PHENOTYPE without the line stays a phenotype, with
+  every arc it has, in and out: the arcs do not tell the three apart, so the class is never guessed from them.
 - Arc between two entities without a process (stimulation of a phenotype or
   submap): a reaction with `reactionType` REDUCED_PHYSICAL_STIMULATION, also out of a logic gate,
   its white arrowhead SBGN's (POSITIVE_INFLUENCE, an open arrow with no SBGN equivalent, is read as a
