@@ -209,12 +209,9 @@ conversion errors: entities outside every compartment on a map that has compartm
 (carnitine, glutaminase, eicosanoids, urea cycle, SREBP, BCAA SLC25A44, nNOS Ca2+), and
 SREBP's stimulation arcs to and between submaps (reduced notation).
 
-The files can be checked in Newt on the website's hidden page /converter/sbgn/
-(https://metabolismregulation.github.io/converter/sbgn/; links to Newt, the converter's file next to MINERVA's
-export; no SBGN-ML files to download), and the way back there as GraphML for yEd.
-`tests/external/newt/pd/` also holds the samples as Newt saves them in CellDesigner and GPML, for later. After a change
-to be checked there: `sh tools/sbgn_test.sh <website repository>` and push the
-website to master.
+The files for Newt of every Atlas map, and the way back as GraphML for yEd, are made by
+`sh tools/sbgn_test.sh <folder>`.
+`tests/external/newt/pd/` also holds the samples as Newt saves them in CellDesigner and GPML, for later.
 
 ## Notes
 
