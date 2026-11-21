@@ -59,7 +59,7 @@ are those of the yEd SBGN palette (`model.py` kinds).
 | DRUG | simple chemical + unit "drug" | **SimpleChemical, white fill** to tell it apart |
 | UNKNOWN | unspecified entity | UnspecifiedEntity |
 | COMPLEX | complex | Complex, members inside |
-| PHENOTYPE | phenotype | **Phenotype**. In the yEd maps the Phenotype glyph stands for phenotype, perturbation and submap alike, so the maps stay compatible with CellDesigner. Nothing becomes Perturbation or Submap |
+| PHENOTYPE | phenotype | **Phenotype**; with the note line `SBGN class: submap` (or `perturbing agent`) yEd's Submap (or PerturbingAgent), the node property SBGN class kept. Nothing is guessed from the arcs |
 | DEGRADED | source and sink | SourceAndSink |
 | homodimer N | "... multimer" + unit "N:N" | the glyph as multimer + unit "N:N" (the maps' form) |
 | hypothetical species (dashed border) | | **the glyph with a dashed border**, and a warning |
@@ -183,7 +183,7 @@ only to check against.
 - Ion channel open/closed: a state variable, as in cd2sbgnml.
 - ION and DRUG: simple chemical, a drug told apart by a white fill (cd2sbgnml adds a "drug" unit); the drug
   maps (aspirin) draw drugs as plain simple chemicals.
-- Phenotype comes back as Phenotype; nothing becomes Perturbation or Submap.
+- Phenotype comes back as Phenotype, unless its notes say `SBGN class: submap` or `perturbing agent` (written by this converter).
 - Truncation: a plain Process with the truncated protein as product (cd2sbgnml: Dissociation).
 - Unknown catalysis and inhibition (dashed in CellDesigner): the arc dashed in yEd, to keep the "unknown".
 - Transcriptional and translational activation and inhibition: stimulation and inhibition arcs (cd2sbgnml
