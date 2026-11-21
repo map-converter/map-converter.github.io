@@ -171,6 +171,11 @@ MINERVA (glycolysis v01).
   drawn at 7 places, would get 7 residues (Pa@26 at 165, 179 and 195 degrees), and
   the SBGN-ML export 7 state variables, 3 of them empty; EGFR
   (phosphoinositides) 2 for one site.
+- Sites kept without CellDesigner drawing them (CellDesigner 4.4.2, a test file of four NOS3 proteins, opened and
+  saved once): a residue's name is drawn inside the shape beside its circle; a site written as the residue's id
+  (`id="S1177"`, the modification's `residue` the same) is not drawn and is kept by a save byte for byte; a line
+  `PTM: P@S1177 Pa@C26 Pa@C15 My@G2` in the species' notes or in the protein's notes is not drawn and is kept, the save
+  adding only a line break before `</body>` (and after `<body>` in the protein's notes).
 - Reading: a residue belongs to the protein, and CellDesigner draws every residue of a protein on every species of
   it, an empty circle where the species sets no state. The reader gives each species all of them: its own states in
   its own order, then the protein's other residues, empty, so a protein drawn several times has the same state
