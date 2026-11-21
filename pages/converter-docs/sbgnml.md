@@ -139,7 +139,7 @@ then write it. Examples: the converter's own SBGN-ML of every test map, and file
   (biological activity) and "SBGN unit" (its unit of information's entity, none for a protein's activity), so an
   editor that edits the GraphML can write it back as an activity with its unit. SBGN-ML written from
   GraphML is Process Description, the activity as its entity.
-- An equivalence arc between two drawn glyphs (an entity and a submap, read as a phenotype) is a plain line.
+- An equivalence arc between two drawn glyphs (an entity and a tag or terminal) is a plain line.
 - Tags and terminals: a tag is yEd's Tag (a box with a point; plain points right, the style property inverse left,
   the property orientation up or down, SBGN-ML's four orientations), its equivalence arc a plain line. A Process
   Description submap's terminal is a Tag too, a top-level node at the submap's border with the node property SBGN class
@@ -170,9 +170,10 @@ become stimulation, inhibition and modulation between entities; necessary stimul
 AND, OR, NOT, phenotype and compartments as in PD. A delay is a yEd Operator labelled τ, drawn as the
 equivalence operator (the test file `tests/yed/delay.graphml`): one plain line in, one arc out (an
 influence). CellDesigner and SBGN PD have no delay: there its input is joined to its target with the type of
-the arc out of it (`graphml.without_delays`). A submap is a phenotype with its name; its
-terminals are left out (named on the console), tags kept as in PD. An equivalence arc is a plain line, yEd's
-consumption arc; one to a submap terminal joins the activity to the submap's phenotype. Onwards (CellDesigner, SBGN PD) the check marks it red: no form there.
+the arc out of it (`graphml.without_delays`). Submaps, their terminals and tags as in PD
+(yEd's Submap and Tags), whichever way the file names its language (`language="activity flow"` or the
+specification's address in `version`). An equivalence arc is a plain line, yEd's consumption arc, from the
+activity to the terminal or tag; CellDesigner and SBML core leave tags, terminals and their arcs out, as in PD.
 No Activity Flow output. Test: `tests/external/newt/af/` (Newt's TGF-beta map).
 
 Hybrid PD-AF maps (Newt's `hybrid pd-af`, `hybrid sbgn`): an activity joined to a
