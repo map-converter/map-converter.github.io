@@ -54,6 +54,13 @@ cd2sbgnml read. It writes from yEd GraphML and reads the way back.
 - Annotation: RDF in each glyph's extension, `bqbiol:is` (a family: `bqbiol:hasVersion`),
   identifiers.org links in Newt's form (`http://identifiers.org/uniprot:P53396`, `CHEBI:16947`,
   `hgnc:115`, `hgnc.symbol:ACLY`), from the same annotation as the CellDesigner writer.
+- References (the node property References, `pubmed:12345 doi:10.x/y`, on a process above all): `bqmodel:isDescribedBy`
+  in the glyph's extension, one bag per reference, as MINERVA holds a reaction's (`identifiers.org/pubmed:12345`; PubMed,
+  DOI and Reactome; others are reported as left out).
+- Sites: a state variable drawn with its value only (`P`) takes its site from the node property PTM (`P@S1177`), each
+  circle the first unused site of its value, in the order drawn, written as the state's `variable`
+  (`<state value="P" variable="S1177"/>`). The sites no circle takes (more sites than circles) go into the glyph's notes
+  as `PTM: P@Y1190 P@Y999`, so no site is lost.
 - The map has `language="process description"`, not `version`: libsbgn's schema lists no PD
   version after 1.3.
 
@@ -113,7 +120,9 @@ then write it. Examples: the converter's own SBGN-ML of every test map, and file
   from it too, names and state variables and units. An arc's colour and width from the `stroke` and `stroke-width`
   of a style naming it (black and 1 not kept), drawn in GraphML and written back to SBGN-ML as a style naming the arc.
 - Annotation: `bqbiol:is` (one entity) and `bqbiol:hasVersion` (a family) from identifiers.org
-  links (db:id, the older db/id) or MIRIAM URNs, into the node properties `annotation.py` reads.
+  links (db:id, the older db/id) or MIRIAM URNs, into the node properties `annotation.py` reads. `isDescribedBy` (either
+  qualifier set) on a glyph into its property References; the note line `PTM:` into the property PTM. A state's
+  `variable` is read into the state variable's text (`P@S1177`).
 - Arcs: ports back to their glyph, bends from `next` points; an end where the file puts it (a yEd port), unless it
   lies on the line from the glyph's centre toward its next point, which the centre (0, 0, the yEd convention) draws
   the same (Newt stops short of a glyph for the arrowhead); an end at a process's or gate's port at the port itself (an arc's start always, its end for a consumption or
@@ -210,7 +219,8 @@ website to master.
 ## Notes
 
 A glyph's `<notes>` (XHTML body) carries the family name and the members' sites, the same lines as in
-CellDesigner (docs/CELLDESIGNER.md, Notes); read back into Family and Member annotation.
+CellDesigner (docs/CELLDESIGNER.md, Notes), and the entity's own sites that no state variable holds (`PTM: ...`); read
+back into Family, Member annotation and PTM.
 An arc drawn dashed (CellDesigner's unknown catalysis, inhibition and the other unknown types; SBGN PD has
 no unknown arc) carries the note "Unknown (a dashed arc)" and is read back dashed.
 
@@ -224,7 +234,7 @@ doi:10.1515/jib-2025-0018; source github.com/sbgn/process-descriptions, commit 1
   logic gates, equivalence, source and sink, reversible processes, nested compartments, dashed arcs, and a
   consumption's or production's cardinality (momapy's stoichiometry): an arc's `cardinality` glyph, read and written,
   CellDesigner's stoichiometry other than 1, a number labelled on a yEd line; written only where one is set, its box
-  beside the line near the entity.
+  beside the line, at its place along it (the bbox read back as that place; the middle by default).
 - Not recorded: the kind of process (omitted, uncertain;
   read and written, not compared).
 - In momapy, not on the maps: CellDesigner protein types (receptor, ion channel, truncated), gene and
