@@ -740,7 +740,8 @@ Sites, states, structural states and units of information carry none: CellDesign
 file changes them. No font family is stored.
 
 Measured in two PDF exports kept with the viewer's check files: `glutaminase-celldesigner-edited`
-(names at 14 from the converter) and `font-sizes/font-sizes-celldesigner-user`. Text is drawn as outlines, so each size comes from
+(names at 14 from the converter) and `font-sizes/font-sizes-celldesigner-user` (made from a new file in CellDesigner
+4.4.2: proteins left at the default, one set to 14). Text is drawn as outlines, so each size comes from
 letter heights against a name of known size: at 12 the flat capital P is 8.67, the round O 9.08; at 14 they are
 10.13 to 10.16 and 10.66. A name set to 14 is drawn at 14.0 (P 10.13 against 8.67 at 12).
 
