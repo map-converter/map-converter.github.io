@@ -6,7 +6,7 @@
 #   python3 converter/cdrender.py <map.xml> <out.svg>
 # Twin of cdrender.js beside it, the master; this file stays for the Python tools that use it.
 # A change is made in both in the same commit (tests/cd-compare.js).
-import math, os, sys
+import math, os, re, sys
 from xml.sax.saxutils import escape
 from lxml import etree
 
@@ -67,6 +67,21 @@ def edit_points(s):
 def unit(dx, dy):
     L = math.hypot(dx, dy) or 1
     return dx / L, dy / L
+
+
+def counts(rx):
+    # a reactant's or product's stoichiometry other than 1 (SBGN's cardinality), by ('r' or 'p', its alias)
+    out = {}
+    for lst, k in (('s:listOfReactants', 'r'), ('s:listOfProducts', 'p')):
+        for sr in rx.iterfind(lst + '/s:speciesReference', NS):
+            v, a = sr.get('stoichiometry'), sr.findtext('s:annotation/cd:extension/cd:alias', None, NS)
+            try:
+                n = float(v)
+            except (TypeError, ValueError):
+                continue
+            if a is not None and n > 0 and n != 1 and math.isfinite(n):
+                out[(k, a)] = str(int(n)) if n == int(n) else repr(n)  # as the converter's count_text writes it (2.50: 2.5)
+    return out
 
 
 def ellipse(x, y, w, h, n=48):
@@ -191,7 +206,7 @@ GATE_HEAD = {'CATALYSIS': 'catalysis', 'INHIBITION': 'inhibition', 'TRIGGER': 't
              'PHYSICAL_STIMULATION': 'stimulation'}
 
 class Drawing:
-    def __init__(self, path):
+    def __init__(self, path, glyph=None):
         r = etree.parse(path).getroot()
         f = lambda x, q: x.find(q, NS)
         self.f = f
@@ -210,6 +225,15 @@ class Drawing:
                          for p in ext.iterfind('cd:listOfProteins/cd:protein', NS)
                          for m in p.iterfind('cd:listOfModificationResidues/cd:modificationResidue', NS)}
         self.cnames = {c.get('id'): c.get('name') or c.get('id') for c in model.iterfind('s:listOfCompartments/s:compartment', NS)}
+        # a compartment drawn as a picture (MINERVA's glyphs: 'Glyph: glyphs/x.png' in its notes): glyph(path) gives the
+        # picture's address, or None; with no glyph every compartment is drawn as lines
+        self.glyph = {}
+        for c in (model.iterfind('s:listOfCompartments/s:compartment', NS) if glyph else ()):
+            n = f(c, 's:notes')
+            m = re.search(r'Glyph:\s*(.+?\.png)', ''.join(n.itertext()), re.I) if n is not None else None
+            href = glyph(m.group(1)) if m else None
+            if href:
+                self.glyph[c.get('id')] = href
         # aliases: id -> (class, box, alias element, species name, identity)
         self.alias = {}
         for a in list(ext.iterfind('cd:listOfComplexSpeciesAliases/cd:complexSpeciesAlias', NS)) + \
@@ -245,12 +269,16 @@ class Drawing:
         ow = float(dl.get('outerWidth', 2)) if dl is not None else 2
         iw = float(dl.get('innerWidth', 1)) if dl is not None else 1
         fill, _ = colour(self.f(a, 'cd:paint').get('color'))
-        # the lines in the compartment's colour, black for a near-white one (CellDesigner's PDF exports of the
-        # neuroinflammation map against the SVG exports of the metabolism maps)
+        # the lines in the compartment's colour, black for a near-white one (CellDesigner's PDF exports compared
+        # with the SVG exports of other maps)
         rgb = [int(fill[k:k + 2], 16) for k in (1, 3, 5)]
         ink = '#000' if min(rgb) > 230 else fill
         oval = self.f(a, 'cd:class').text == 'OVAL'
-        if oval:
+        pic = self.glyph.get(a.get('compartment'))
+        if pic:
+            self.out.append('<image href="%s" x="%s" y="%s" width="%s" height="%s" preserveAspectRatio="none"/>'
+                            % (escape(pic, {'"': '&quot;'}), fmt(x), fmt(y), fmt(w), fmt(h)))
+        elif oval:
             self.out.append('<ellipse cx="%s" cy="%s" rx="%s" ry="%s" fill="none" stroke="%s" stroke-opacity="0.25" stroke-width="%s"/>'
                             % (fmt(x + w / 2), fmt(y + h / 2), fmt(w / 2 - t / 2), fmt(h / 2 - t / 2), fill, fmt(t)))
             self.out.append('<ellipse cx="%s" cy="%s" rx="%s" ry="%s" fill="none" stroke="%s" stroke-width="%s"/>' % (fmt(x + w / 2), fmt(y + h / 2), fmt(w / 2), fmt(h / 2), ink, fmt(ow)))
@@ -304,7 +332,7 @@ class Drawing:
         fill, alpha = colour(paint.get('color') if paint is not None else 'ffffffff')
         hyp = f(si, 'cd:hypothetical')
         dash = ' stroke-dasharray="5,3"' if hyp is not None and hyp.text == 'true' else ''
-        sl = f(a, 'cd:usualView/cd:singleLine')  # the border's width (a complex's 2 in the neuroinflammation map)
+        sl = f(a, 'cd:usualView/cd:singleLine')  # the border's width (2 on some maps' complexes)
         if sl is not None and sl.get('width') and float(sl.get('width')) != 1:
             dash += ' stroke-width="%s"' % fmt(float(sl.get('width')))
         act = f(a, 'cd:activity')
@@ -329,7 +357,7 @@ class Drawing:
 
     def shape(self, cls, b, fill, alpha, dash):
         x, y, w, h = b
-        # an unknown entity has no outline in CellDesigner (the group labels of the neuroinflammation map)
+        # an unknown entity has no outline in CellDesigner (group labels drawn as unknown entities)
         style = 'fill="%s"%s stroke="%s"%s' % (fill, ' fill-opacity="%s"' % fmt(alpha) if alpha < 1 else '', 'none' if cls == 'UNKNOWN' else '#000', dash)
         if CLASSES and fill != 'none':
             style += ' class="c-%s"' % ROLE.get(cls, 'white')
@@ -376,7 +404,9 @@ class Drawing:
             p = on_border([x + 9, y + 9, max(w - 18, 0), max(h - 18, 0)], ang)
             tx = p[0] + (2 if fx <= -0.5 + e else -2 if fx >= 0.5 - e else 0)
             ty = p[1] + (2 if fy <= -0.5 + e else -2 if fy >= 0.5 - e else 0)
-            self.text(site, tx, ty + 3.5, size=10, anchor='start' if fx < -e else 'end' if fx > e else 'middle')
+            # hidden unless the viewer's Show sites asks for it (sv-site), as yrender hides a state variable's site
+            self.text(site, tx, ty + 3.5, size=10, anchor='start' if fx < -e else 'end' if fx > e else 'middle',
+                      extra=' class="sv-site" display="none"')
         for (p_, r_), (ang, site) in self.residues.items():
             if p_ == pid and r_ not in mods:
                 px, py = on_border(b, ang)
@@ -547,11 +577,31 @@ class Drawing:
 
     def reactions(self):
         for rx in self.model.iterfind('s:listOfReactions/s:reaction', NS):
-            self.cur = rx.get('id')
+            self.cur = (rx.get('id') or rx.get('metaid'))
             try:
                 self.reaction(rx)
             except Exception as e:  # a reaction this drawing cannot place is left out, said on stderr
-                print('%s: %s' % (rx.get('id'), e), file=sys.stderr)
+                print('%s: %s' % ((rx.get('id') or rx.get('metaid')), e), file=sys.stderr)
+
+    def count(self, t, line):
+        # a cardinality (the converter's layout.count_box): a box beside the middle of the participant's line (from the
+        # species' visual end to the process), a long side along it, above it or right of a line near upright, light grey
+        lens = [math.sqrt((q[0] - p[0]) * (q[0] - p[0]) + (q[1] - p[1]) * (q[1] - p[1])) for p, q in zip(line, line[1:])]
+        half, k = sum(lens) / 2, 0
+        while k < len(lens) - 1 and half > lens[k]:
+            half -= lens[k]
+            k += 1
+        L = lens[k] or 1.0
+        ux, uy = ((line[k + 1][0] - line[k][0]) / L, (line[k + 1][1] - line[k][1]) / L) if lens[k] else (1.0, 0.0)
+        nx, ny = -uy, ux
+        if (nx < 0) if abs(ny) < 0.2 else (ny > 0):
+            nx, ny = -nx, -ny
+        w, h = 5.0 * len(t) + 6, 11.0
+        b = 1 + abs(nx) * w / 2 + abs(ny) * h / 2
+        cx, cy = line[k][0] + ux * half + nx * b, line[k][1] + uy * half + ny * b
+        self.lines.append('<rect x="%s" y="%s" width="%s" height="%s" fill="#fff" stroke="#9aa0a6" stroke-width="0.8"/>'
+                          '<text x="%s" y="%s" font-family="%s" font-size="9" fill="#9aa0a6" text-anchor="middle">%s</text>'
+                          % (fmt(cx - w / 2), fmt(cy - h / 2), fmt(w), fmt(h), fmt(cx), fmt(cy + 3.2), FONT, escape(t)))
 
     def reaction(self, rx):
         f = self.f
@@ -600,6 +650,7 @@ class Drawing:
         fl = unit(Q[0] - P[0], Q[1] - P[1])
         self.ends(line, ra, pa)
         reversible = rx.get('reversible') != 'false'
+        nums = counts(rx)
         # the main line: reactant to product, the head at the product (and the reactant if reversible)
         u = unit(line[-1][0] - line[-2][0], line[-1][1] - line[-2][1])
         if GROUPS:  # split at the process glyph, each half with its own head
@@ -608,13 +659,17 @@ class Drawing:
             if reversible:
                 half[0] = self.head('production', line[0], unit(line[0][0] - line[1][0], line[0][1] - line[1][1]))
             self.path(half, col, width, dash, end_node=False)
+            if ('r', ra) in nums:
+                self.count(nums[('r', ra)], line[:k + 1] + [sq])
             self.close()
             self.open(self.cur + '|b')
             half = [sq] + line[k + 1:]
             half[-1] = self.head('production', line[-1], u)
             self.path(half, col, width, dash, start_node=False)
+            if ('p', pa) in nums:
+                self.count(nums[('p', pa)], (line[k + 1:] + [])[::-1] + [sq])
             self.close()
-            self.links_and_modifiers(x, P, Q, sq, fl, col, width, dash, typ)
+            self.links_and_modifiers(x, P, Q, sq, fl, col, width, dash, typ, nums)
             return
         main = list(line)
         main[-1] = self.head('production', line[-1], u)
@@ -622,7 +677,10 @@ class Drawing:
             v = unit(line[0][0] - line[1][0], line[0][1] - line[1][1])
             main[0] = self.head('production', line[0], v)
         self.path(main, col, width, dash)
-        self.links_and_modifiers(x, P, Q, sq, fl, col, width, dash, typ)
+        for k_, a_, L_ in (('r', ra, line[:k + 1] + [sq]), ('p', pa, line[k + 1:][::-1] + [sq])):
+            if (k_, a_) in nums:
+                self.count(nums[(k_, a_)], L_)
+        self.links_and_modifiers(x, P, Q, sq, fl, col, width, dash, typ, nums)
 
     def branched(self, rx, x, typ, br, bp, ep, q, col, width):
         # two entities binding into one (heterodimer association) or one coming apart into two (dissociation):
@@ -724,7 +782,7 @@ class Drawing:
             fmt(G[0]), fmt(G[1]), '' if GROUPS else '\n', fmt(G[0]), fmt(G[1] + 4), GATE.get(t.rsplit('_', 1)[1], '?'))
         return '<g data-n="%s">%s</g>' % (escape(id_), g) if GROUPS else g
 
-    def links_and_modifiers(self, x, P, Q, sq, fl, col, width, dash, typ=None):
+    def links_and_modifiers(self, x, P, Q, sq, fl, col, width, dash, typ=None, nums=None):
         f = self.f
         # added reactants and products join the square's segment at 3/8 and 5/8 of its ends' anchors
         joins = [(P[0] + t * (Q[0] - P[0]), P[1] + t * (Q[1] - P[1])) for t in (0.375, 0.625)]
@@ -744,11 +802,15 @@ class Drawing:
                 lwd = float(lc.get('width', width)) if lc is not None else width
                 if into:
                     self.path(seq, lcol, lwd, dash, end_node=False)
+                    if nums and ('r', i) in nums:
+                        self.count(nums[('r', i)], seq)
                 else:
                     seq = seq[::-1]
                     w_ = unit(seq[-1][0] - seq[-2][0], seq[-1][1] - seq[-2][1])
                     stop = self.head('production', seq[-1], w_)
                     self.path(seq[:-1] + [stop], lcol, lwd, dash, start_node=False)
+                    if nums and ('p', i) in nums:
+                        self.count(nums[('p', i)], seq[::-1])
                 self.close()
         # modifiers end at the point of the square targetLineIndex names
         gate_inputs = set()
@@ -872,14 +934,14 @@ def on_border(b, a):
     return (x + w / 2 + fx * w, y + h / 2 + fy * h)
 
 
-def render(path):
-    return Drawing(path).svg()
+def render(path, glyph=None):
+    return Drawing(path, glyph).svg()
 
 
-def render_hits(path):
+def render_hits(path, glyph=None):
     # the drawing and where its parts are: aliases (id, species, class, box) and reactions (id, lines, square),
-    # for a viewer that opens what is clicked (the neuroinflammation site)
-    d = Drawing(path)
+    # for a viewer that opens what is clicked
+    d = Drawing(path, glyph)
     svg = d.svg()
     aliases = [{'id': i, 'species': a[2].get('species'), 'class': a[0], 'box': [round(v, 1) for v in a[1]]}
                for i, a in d.alias.items()]
