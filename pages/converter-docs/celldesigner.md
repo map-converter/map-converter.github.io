@@ -55,8 +55,8 @@ CellDesigner, so `diff` against a returned file shows only real changes.
   by CellDesigner on saving, without a message.
 - References on a reaction: `bqmodel:isDescribedBy` with
   `urn:miriam:pubmed:N` in the reaction's annotation (F021 has three), one bag per
-  reference, as MINERVA maps hold them (some in `bqmodel`; the PD map and the
-  Osteoarthritis map mostly `bqbiol`, and MINERVA shows both). Written from the process
+  reference, as MINERVA maps hold them (some in `bqmodel`; the PD map mostly
+  `bqbiol`, and MINERVA shows both). Written from the process
   glyph's property References and read back into it; a DOI as
   `urn:miriam:doi:10.1016%2Fj.jaci.2020.12.155`.
 - Species inside a complex (`listOfIncludedSpecies` in the model extension)
@@ -314,8 +314,7 @@ CellDesigner (HSP90 + CAV1:CaM:eNOS -> CaM:HSP90:CAV1:eNOS + CaM).
   from the gate to the process (CATALYSIS, TRIGGER, ...), `targetLineIndex`,
   and `editPoints="x,y"` = the gate's absolute position (MINERVA puts the gate
   there). The gate can sit anywhere: the converter uses the yEd
-  operator's position. A gate CellDesigner saved with bends (PD map histamine signalling,
-  Osteoarthritis pd65): the gate is the last point of `editPoints`, the points
+  operator's position. A gate CellDesigner saved with bends (PD map histamine signalling): the gate is the last point of `editPoints`, the points
   before it the bends of the line gate -> process, in the frame gate -> process; each input's
   modification carries its port (`linkTarget`) and its bends in the frame input -> gate. Then one `modification` per input, of the
   modificationType, with `linkTarget` port INACTIVE and no targetLineIndex.
@@ -337,7 +336,7 @@ CellDesigner (HSP90 + CAV1:CaM:eNOS -> CaM:HSP90:CAV1:eNOS + CaM).
   (REDUCED_TRIGGER, REDUCED_MODULATION; REDUCED_PHYSICAL_STIMULATION for a
   stimulation, NEGATIVE_INFLUENCE for inhibition; the PD map's POSITIVE_INFLUENCE is read), then one GateMember per input of
   that type. All four are written and read.
-- Unknown gate (`BOOLEAN_LOGIC_GATE_UNKNOWN`, the question mark; pd65 of the Osteoarthritis map): the
+- Unknown gate (`BOOLEAN_LOGIC_GATE_UNKNOWN`, the question mark): the
   yEd Operator **?**, both ways, as a modification gate and between entities; an equivalence operator is written as
   it.
 - Unknown (dashed) reduced arcs (the test file `tests/celldesigner/unknown-reduced.xml`):
@@ -730,7 +729,6 @@ opened and saved in CellDesigner 4.4 (`tests/celldesigner/location-in-compartmen
   `compartmentAlias`): kept byte for byte.
 - No compartments, the location as each species' SBML note ("location: nucleus"): kept, CellDesigner adds a line
   break before `</body>`.
-Not yet known: whether CaSQ or MINERVA read either.
 
 ## Font sizes (measured in CellDesigner 4.4's PDF export)
 
