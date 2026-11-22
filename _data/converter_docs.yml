@@ -1,6 +1,6 @@
 # The menu of the converter's documentation on the website (/converter/docs/), copied there by
 # tools/to_website.sh as _data/converter_docs.yml. Sections as in Diátaxis (tutorial, how-to guides,
-# reference, explanation). A page is its file name in docs/, lower case;
+# reference, explanation), and the changelog. A page is its file name in docs/, lower case;
 # an entry with url links a page outside docs/.
 - section: Start
   pages:
@@ -21,3 +21,6 @@
 - section: Explanation
   pages:
     - {url: /converter/architecture/, title: Architecture}
+- section: Changes
+  pages:
+    - {page: changes, title: Changelog}
