@@ -248,31 +248,14 @@ the nodes of one entity by their annotation (HGNC, UniProt, ChEBI), or by their 
 without layout writes.</p>
 
 <h3>Maps only</h3>
-<p>Every route starts from a map. SBML with layout converts both ways, as it carries a drawing. SBML without
-layout and BioPAX are written from a map but not read: making a map from a file without a drawing (BioPAX, SBML
-without layout, a table) is the work of the <a href="{{ '/human-like-layout/architecture/' | relative_url }}">human-like layout</a> project, not of the converter. Its maps can then
-come here.</p>
+<p>Every route starts from a map. SBML with layout is written as Level 3 with the Layout and Render packages, drawn as
+the SBGN-ML file; it is not read on this page. SBML without layout and BioPAX are not written. Making a map from a
+file without a drawing (BioPAX, SBML without layout, a table) is the work of a layout tool, not of the converter.</p>
 
 <h3>Files edited in another program</h3>
 <p>A file saved by Newt, CellDesigner or yEd is read as any file of its format, whatever made it. The readers read
 only what the file says, so what the other program changed stays changed: there is no recovery of the original
 map on the way back. The files for Newt are made so that Newt has little to move.</p>
 
-<h3>Order of work</h3>
-<p>In a new repository, started from a copy of v1 with its history. v1 is kept,
-unchanged, in its own archived repository, the reference. A branch <code>v1-fixed</code> holds v1 with bug fixes
-only, the fallback if the page has to go back to it.</p>
-<ol>
-  <li>Done. Every Atlas map, every official CellDesigner and SBGN-ML file and the test files converted with v1 and kept as reference files.</li>
-  <li>Done. The model (biology and drawing), the readers and writers adapted to it.</li>
-  <li>Done. Report and routes.</li>
-  <li>Done. The layout out of the readers and writers into <code>layout.py</code> and the three adapters, checked against the reference files after each move.</li>
-  <li>Done. Four CellDesigner files: advanced (the small moves), straight &amp; bends, straight line, and as drawn: no node moved, the process glyph where yEd has the process and a line into a large node beside its centre, held by edit points that change nothing CellDesigner draws and are left out on the way back. The straight layout stays the simple fallback: each process midway, a modifier's arc may slant.</li>
-  <li>As drawn is kept as it is: more edit points only when a real exchange between editors needs them.</li>
-  <li>Done in part. SBML with layout written, Level 3 with the Layout and Render packages, drawn as the SBGN-ML file and
-  checked with libSBML. SBML is not read on this page, and SBML without layout is not written.</li>
-  <li>BioPAX is not written.</li>
-</ol>
-
-<p class="ca-sub" style="font-size: 13px; color: #777;">Updated 2026-11-20.
+<p class="ca-sub" style="font-size: 13px; color: #777;">Updated 2026-11-22.
 The code in <code>converter/mapconv/</code> is a copy of the converter's code, kept in a private repository.</p>
