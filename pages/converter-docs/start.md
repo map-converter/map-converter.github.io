@@ -12,7 +12,7 @@ A walk through the [Converter page](/converter/) with a yEd map. It takes a minu
 ## 1. A map to convert
 
 Any yEd GraphML map drawn with the SBGN palette of yEd works. To start with a known map, download
-the GraphML of a map from the [Atlas](/atlas/), for example glycolysis.
+the GraphML of a map from the [Metabolism Regulation maps](https://metabolismregulation.github.io/maps/), for example glycolysis.
 
 ## 2. Drop it on the page
 
