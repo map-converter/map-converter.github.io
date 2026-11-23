@@ -18,6 +18,7 @@ noindex: true
   .ca-file { fill: #fff; stroke: #9DC3E6; stroke-width: 1; }
   .ca-step { fill: #DEEBF7; }
   .ca-shared { fill: #9DC3E6; }
+  .ca-key { fill: #1F4E79; }
   .ca-panel { fill: #fff; stroke: #9DC3E6; stroke-width: 1; }
   .ca-plan { fill: #fff; stroke: #9DC3E6; stroke-width: 1.2; stroke-dasharray: 5 3; }
   .ca-name { fill: #0E2A47; font-size: 15px; font-weight: bold; }
@@ -25,6 +26,7 @@ noindex: true
   .ca-fmtt { fill: #0E2A47; font-size: 15px; }
   .ca-sub { fill: #0E2A47; font-size: 13px; }
   .ca-pt { fill: #6F8FB3; }
+  .ca-inv { fill: #fff; }
   .ca-arr { stroke: #6F8FB3; stroke-width: 1.3; fill: none; }
   .ca-tip { fill: #6F8FB3; }
   .ca-fig rect { rx: 6px; ry: 6px; }
@@ -35,6 +37,7 @@ noindex: true
   .ca-sw.shared { background: #9DC3E6; border-color: #9DC3E6; }
   .ca-sw.step { background: #DEEBF7; border-color: #DEEBF7; }
   .ca-sw.plan { border-style: dashed; }
+  .ca-sw.key { background: #1F4E79; border-color: #1F4E79; }
   .ca-table { border-collapse: collapse; font-size: 14px; width: 100%; margin: 8px 0 16px; }
   .ca-table th { text-align: left; font-weight: normal; color: #888; font-size: 13px; padding: 4px 16px 4px 0; border-bottom: 1px solid #ddd; }
   .ca-table td { padding: 8px 16px 8px 0; vertical-align: top; border-bottom: 1px solid #eee; }
@@ -92,18 +95,18 @@ drawn as the SBGN-ML file. Reading it on this page, SBML without layout and BioP
   <text class="ca-sub ca-pt" x="242.5" y="534.0" text-anchor="middle">export only, not read</text>
   <rect class="ca-panel" x="347" y="72" width="165" height="488"/>
   <text class="ca-big" x="429.5" y="100" text-anchor="middle">model.Map</text>
-  <rect class="ca-shared" x="359" y="116" width="141" height="110"/>
-  <text class="ca-name" x="371" y="140">biology</text>
-  <text class="ca-sub" x="371" y="158">entities</text>
-  <text class="ca-sub" x="371" y="175">reactions</text>
-  <text class="ca-sub" x="371" y="192">annotation</text>
-  <text class="ca-sub" x="371" y="209">one per entity</text>
-  <rect class="ca-shared" x="359" y="238" width="141" height="110"/>
-  <text class="ca-name" x="371" y="262">drawing</text>
-  <text class="ca-sub" x="371" y="280">boxes, arcs, bends</text>
-  <text class="ca-sub" x="371" y="297">each by the id of</text>
-  <text class="ca-sub" x="371" y="314">what it draws</text>
-  <text class="ca-sub" x="371" y="331">one per map</text>
+  <rect class="ca-key" x="359" y="116" width="141" height="110"/>
+  <text class="ca-name ca-inv" x="371" y="140">biology</text>
+  <text class="ca-sub ca-inv" x="371" y="158">entities</text>
+  <text class="ca-sub ca-inv" x="371" y="175">reactions</text>
+  <text class="ca-sub ca-inv" x="371" y="192">annotation</text>
+  <text class="ca-sub ca-inv" x="371" y="209">one per entity</text>
+  <rect class="ca-key" x="359" y="238" width="141" height="110"/>
+  <text class="ca-name ca-inv" x="371" y="262">drawing</text>
+  <text class="ca-sub ca-inv" x="371" y="280">boxes, arcs, bends</text>
+  <text class="ca-sub ca-inv" x="371" y="297">each by the id of</text>
+  <text class="ca-sub ca-inv" x="371" y="314">what it draws</text>
+  <text class="ca-sub ca-inv" x="371" y="331">one per map</text>
   <rect class="ca-shared" x="534" y="72" width="180" height="402"/>
   <text class="ca-big" x="624.0" y="100" text-anchor="middle">layout.py</text>
   <text class="ca-sub" x="624.0" y="119" text-anchor="middle">shared by every format</text>
@@ -194,7 +197,8 @@ drawn as the SBGN-ML file. Reading it on this page, SBML without layout and BioP
 </svg>
 </div>
 <div class="ca-legend">
-  <span><i class="ca-sw shared"></i>shared by every format: the model's parts, the layout</span>
+  <span><i class="ca-sw key"></i>the model: biology and drawing, apart</span>
+  <span><i class="ca-sw shared"></i>layout, shared by every format</span>
   <span><i class="ca-sw step"></i>one step</span>
   <span><i class="ca-sw"></i>a file</span>
   <span><i class="ca-sw plan"></i>not written yet</span>
