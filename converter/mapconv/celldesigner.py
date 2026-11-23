@@ -738,8 +738,10 @@ def read(path):
     # species sets no state. Entries of one name and type (a file with one per species) count as one protein: their
     # residues joined, matched by site name, an unnamed one by its angle. kin: protein id -> its joined residues
     # [(angle, site)]; residues: (protein id, residue id) -> (its place in that list, its own angle)
-    residues, kin, joined = {}, {}, {}
+    residues, kin, joined, truncated = {}, {}, {}, set()
     for p in xs(ext, 'cd:listOfProteins/cd:protein'):
+        if p.get('type') == 'TRUNCATED':  # a fragment: not its full protein, though it has the same identifier
+            truncated.add(p.get('id'))
         rs = joined.setdefault((p.get('name'), p.get('type') or 'GENERIC'), [])
         kin[p.get('id')] = rs
         for m in xs(p, 'cd:listOfModificationResidues/cd:modificationResidue'):
@@ -801,11 +803,16 @@ def read(path):
         fam = an is not None and f(an, './/rdf:Description/bq:hasVersion') is not None
         hyp = f(si, 'cd:hypothetical')
         font = f(a, 'cd:font')
+        data = props(cls, note(s), from_notes(note(s), to_properties(fam, uris) if uris else {}))
+        if pid in truncated:  # drawn as a plain macromolecule; the unit not drawn keeps it apart from its protein
+            hidden = (data.get('Unit of information') or '').splitlines()
+            if 'truncated' not in [x.strip() for x in hidden]:
+                data['Unit of information'] = '\n'.join([x for x in hidden if x.strip()] + ['truncated'])
         nodes[a.get('id')] = Node(
             id=a.get('id'), kind=kind, box=box, labels=[name(s.get('name')) if cls != 'DEGRADED' else ''],
             parent=a.get('complexSpeciesAlias') or a.get('compartmentAlias'),
             fill=None if cls == 'DRUG' or pv is None else paint(pv.get('color')), border=cls != 'UNKNOWN',
-            states=states, units=units, count=n, data=props(cls, note(s), from_notes(note(s), to_properties(fam, uris) if uris else {})),
+            states=states, units=units, count=n, data=data,
             dashed=hyp is not None and hyp.text == 'true', species=a.get('species'),
             font=float(font.get('size')) if font is not None and font.get('size') else None)
     # an unlabelled complex in yEd is named after its members in CellDesigner: the name goes

@@ -11,6 +11,14 @@ What changed for people who use the converter, newest first, by the date it went
 Changes inside the code that leave every file the same are listed only when they change how the converter works.
 
 
+## 2026-11-23
+
+- CellDesigner: a truncated protein (a fragment, CellDesigner's protein type Truncated, such as CDK5R1 (p25) or a
+  52 kD fragment) is no longer merged with its full protein, though both carry one identifier. It is drawn as before,
+  a plain macromolecule, and carries the unit not drawn "truncated" (the property Unit of information in GraphML, a
+  notes line in SBGN-ML), as two cleavage fragments of one protein already did.
+
+
 ## 2026-11-21
 
 - Activity Flow maps keep their submaps and terminals: a file saying `language="activity flow"` drew a submap as a

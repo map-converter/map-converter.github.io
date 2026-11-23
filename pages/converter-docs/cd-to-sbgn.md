@@ -180,6 +180,9 @@ only to check against.
 
 - Receptor, ion channel, truncated protein: a plain macromolecule (cd2sbgnml adds a unit of information
   naming the kind, so it survives a round trip back to CellDesigner).
+- A truncated protein (a fragment such as CDK5R1 (p25)) is another entity than its full protein, though both carry
+  one identifier: it gets the unit not drawn "truncated" (the node property Unit of information, a notes line in
+  SBGN-ML and CellDesigner), so it is never merged with the full protein.
 - Ion channel open/closed: a state variable, as in cd2sbgnml.
 - ION and DRUG: simple chemical, a drug told apart by a white fill (cd2sbgnml adds a "drug" unit); the drug
   maps (aspirin) draw drugs as plain simple chemicals.
