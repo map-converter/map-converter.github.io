@@ -158,7 +158,7 @@ segments level or upright, as CellDesigner draws them, against 15 with such a fr
 | colours of species | kept as fill (as the forward direction); a transparent one (alpha 00, or six digits, which CellDesigner reads as alpha 00) as no fill; an unknown species without an outline, as CellDesigner draws it |
 | references on a reaction drawn as an arc (reduced notation, influences, a logic gate between entities) | left out, with a message naming the reactions: an arc holds no properties |
 | reaction annotation other than `isDescribedBy` (`bqmodel:is` with a PMID, Reactome `hasVersion`) | left out, no message yet |
-| species identifiers other than HGNC, HGNC symbol, UniProt, ChEBI (Entrez, Ensembl, RefSeq, InChI, PubChem, GO) | left out, with one message naming each database and the number of species |
+| species identifiers other than HGNC, HGNC symbol, UniProt, ChEBI (Entrez, Ensembl, RefSeq, InChI, PubChem, GO), and links under qualifiers that do not name the species (`isDescribedBy`) | kept as read in the node property Identifiers, written back to every format |
 | species notes (MINERVA's Name, Synonyms, Charge text) | left out but for a family's lines (`annotation.from_notes`) |
 | line colours | left out: the yEd style; a compartment's outline in its paint |
 | font sizes (a 30 pt title on a 12 pt map) | kept, each species' own; CellDesigner has none for state variables and units, which get the converter's (10) |
@@ -203,9 +203,8 @@ only to check against.
 Found on the PD map
 submaps in `tests/external/pd-map/submaps/` and AsthmaMap's PD02 in `tests/external/asthmap/submaps/`:
 
-- **Added links lose their bends**: "edit points of an added link left out" (pd-autophagy 16
-  links, pd-histamine-signalling 2). Needs a small CellDesigner file with an added reactant or
-  product link drawn with bends, saved by CellDesigner, before the format is read.
+- **Added links in a branched reaction lose their bends**: "edit points of an added link left out". Elsewhere an added
+  link's edit points are read (CELLDESIGNER.md, Added link's edit points); the writer writes added links straight.
 - **SBGN-ML writer stops on a family member without an HGNC symbol** (pd-autophagy):
   `annotation.miriam` reads `p['HGNC symbol']`, KeyError. The website's converter page fails
   the same way on this file (CellDesigner -> SBGN-ML). Fix: a member without the symbol gives

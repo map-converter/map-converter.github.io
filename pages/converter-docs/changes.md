@@ -11,6 +11,28 @@ What changed for people who use the converter, newest first, by the date it went
 Changes inside the code that leave every file the same are listed only when they change how the converter works.
 
 
+## 2026-11-26
+
+- Activity Flow maps are written as Activity Flow: an SBML-qual model, or an Activity Flow map from SBGN-ML or GraphML,
+  converted to SBGN-ML gave a Process Description map (macromolecules and stimulations) that Newt and libSBGN read as
+  the wrong language; now each activity is a biological activity with its entity in its unit of information, the arcs
+  positive, negative and unknown influences, a delay kept. Process Description maps are written as before.
+- SBGN-ML files of several maps: every map is converted, not only the first; the second and later come with -map2,
+  -map3 ... in their names, and the messages say which map each file is.
+- Older CellDesigner files (SBML Level 2 Version 1, CellDesigner's older layout: 35 of ACSN 2.0's archived maps,
+  ferroptosis and DNA repair among them) are read; they were refused with "NoneType ... iterfind". A file that is not
+  SBML at all is refused saying so.
+- Identifiers are kept: links the converter had no property for (NCBI Gene, Ensembl, RefSeq, GO, PubMed on a
+  species, ...) were left out on the way to GraphML and SBGN-ML; now every one goes into the node property
+  Identifiers, bag by bag with its qualifier, and is written back to SBGN-ML, SBML and CellDesigner. A family that
+  MINERVA writes one link per bag keeps all its members (before, only the last link: the PKA regulatory subunits were
+  one member).
+- Which boxes are one entity, by identifiers (the summary counts and the check): boxes join when they share an
+  identifier and differ in none of a database both have. ACSN's families, each member in its own bag, are no longer
+  joined by one UniProt they happen to share (JNK, ERK1/2 and p38 were one entity), and two proteins under one wrong
+  HGNC ID but two UniProt accessions stay two. An identifier under `isDescribedBy` no longer names the box (in
+  AsthmaMap's eicosanoid map, 11-epi-PGF2alpha and 11beta-PGF2alpha, one ChEBI under isDescribedBy, are now two).
+
 ## 2026-11-23
 
 - CellDesigner: a truncated protein (a fragment, CellDesigner's protein type Truncated, such as CDK5R1 (p25) or a

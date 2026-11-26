@@ -111,6 +111,10 @@ padding), so compartments that touch or stand close in yEd overlap there (estrog
 then write it. Examples: the converter's own SBGN-ML of every test map, and files saved by Newt
 (`tests/external/newt/pd/`).
 
+A file of several maps (libsbgn 0.3 allows more than one `<map>`): every map is read and converted on its own, the first
+under the file's name, the second and later with `-map2`, `-map3` ... before the ending (`--map N` on the command line),
+each message list naming the map ("map 2 of 3 in the file (id)"). Test: `tests/sbgnml/two-maps.sbgn`.
+
 - Glyphs back by class (`KIND`, the inverse of `CLASS`); `source and sink` is yEd's EmptySet;
   a multimer gets count N from its N:x unit, else 2; a gate keeps AND, OR, NOT as its label.
 - Parents: a complex's child glyphs; else `compartmentRef`.
@@ -120,7 +124,11 @@ then write it. Examples: the converter's own SBGN-ML of every test map, and file
   from it too, names and state variables and units. An arc's colour and width from the `stroke` and `stroke-width`
   of a style naming it (black and 1 not kept), drawn in GraphML and written back to SBGN-ML as a style naming the arc.
 - Annotation: `bqbiol:is` (one entity) and `bqbiol:hasVersion` (a family) from identifiers.org
-  links (db:id, the older db/id) or MIRIAM URNs, into the node properties `annotation.py` reads. `isDescribedBy` (either
+  links (db:id, the older db/id) or MIRIAM URNs, into the node properties `annotation.py` reads. Every other link, of
+  any database and under any qualifier, is kept as read in the node property Identifiers (one line per bag: its
+  qualifier, then its links) and written back as its own bag to SBGN-ML, SBML and CellDesigner (a link that is no
+  MIRIAM URN is left out of CellDesigner, said). A family written one link per bag (MINERVA) has the links of one
+  database as its members (the first of HGNC symbol, HGNC, UniProt, ChEBI), its other links kept as read. `isDescribedBy` (either
   qualifier set) on a glyph into its property References; the note line `PTM:` into the property PTM. A state's
   `variable` is read into the state variable's text (`P@S1177`).
 - Arcs: ports back to their glyph, bends from `next` points; an end where the file puts it (a yEd port), unless it
@@ -160,7 +168,7 @@ then write it. Examples: the converter's own SBGN-ML of every test map, and file
   whether it stands for a perturbing agent, a submap or neither is not guessed from its arcs. Direct arcs to and from
   a submap, without tags, are kept as drawn (libsbgn's PD rules flag them too; Newt opens them).
 
-### Activity Flow (read only)
+### Activity Flow
 
 SBGN AF Level 1 Version 1.2 (Mi et al. 2015, doi:10.1515/jib-2015-265). An activity is drawn as the entity it comes from, CellDesigner's way: its
 unit of information's shape gives the glyph (macromolecule, nucleic acid feature, simple chemical,
@@ -174,7 +182,12 @@ the arc out of it (`graphml.without_delays`). Submaps, their terminals and tags 
 (yEd's Submap and Tags), whichever way the file names its language (`language="activity flow"` or the
 specification's address in `version`). An equivalence arc is a plain line, yEd's consumption arc, from the
 activity to the terminal or tag; CellDesigner and SBML core leave tags, terminals and their arcs out, as in PD.
-No Activity Flow output. Test: `tests/external/newt/af/` (Newt's TGF-beta map).
+Written back as Activity Flow: a map with activities (the node property "SBGN class" biological activity, as this
+reader and the SBML-qual reader give it) and no process glyph is written with `language="activity flow"`, each entity
+as a biological activity whose unit of information names its entity (none for a protein), stimulation, inhibition and
+modulation as positive, negative and unknown influence, a delay as itself. Every other map is written as Process
+Description. Tests: `tests/external/newt/af/` (Newt's TGF-beta map), `tests/test_sbml_qual.py` (SBML-qual to
+SBGN-ML).
 
 Hybrid PD-AF maps (Newt's `hybrid pd-af`, `hybrid sbgn`): an activity joined to a
 PD entity by a performance arc is that entity, as in CellDesigner's reduced notation (one node for the

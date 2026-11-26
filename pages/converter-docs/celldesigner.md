@@ -29,6 +29,14 @@ SBGN-ML), not a check of a new version, and no MINERVA renders are made for new 
 `-minerva.png` files stay). Files edited in CellDesigner keep the version they were made from in their
 name (`sources/<map>-vNN-cd442-....xml`). The map README has a table of the versions and what changed.
 
+## Older CellDesigner files
+
+Files in CellDesigner's older layout (SBML Level 2 Version 1, model version 4.0, as 35 of the ACSN 2.0 archived
+downloads) put the CellDesigner elements straight in each `<annotation>`, with no `<celldesigner:extension>`, and use SBML's
+older namespace. The reader takes them as CellDesigner 4.4 does on opening: each annotation's CellDesigner elements as
+its extension, the SBML elements in the current namespace, and says so in the messages. Files are written in the
+current layout only. Test: `tests/test_maps.py` (ACSN 2.0's single-strand annealing map).
+
 ## Round trip
 
 Goal: CellDesigner opens the file without warnings and

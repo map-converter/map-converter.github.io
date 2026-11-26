@@ -27,7 +27,7 @@ Level 2 annotation) into the map model, drawn where the file places it. Nothing 
 - A species glyph may name its species by id or by metaid; one naming no species of the model is drawn as an
   unspecified entity and said.
 - Labels: the text glyph's text, else the name of the element it shows. MIRIAM identifiers (is, hasVersion) as node
-  properties.
+  properties, every other link kept as read (the property Identifiers, as in SBGN-ML).
 - Sources and sinks: a species glyph that names no species and has no text (COPASI writes such a glyph, 1 by 1, with
   the text "unset", for a reaction's source or sink) is a source or sink, drawn as a circle round its centre, 20 px at
   least. "unset" is never taken as a label.
@@ -41,7 +41,12 @@ Level 2 annotation) into the map model, drawn where the file places it. Nothing 
   positive input a stimulation, a negative one an inhibition, otherwise a modulation; an input without a sign takes it
   from the function terms (compared with 0, or below 1, negative; with 1 or more, positive), and a transition that
   lists no inputs takes them from its function terms. A qualitative species without a box is left out and said.
-- Left out and said: layouts after the first, general glyphs other than SBML-qual boxes (MINERVA's modifications), reactions
+- MINERVA's multi: MINERVA writes a species' modification states, units of information and multimer count as multi
+  features of its own types (`minerva_modification_type_..._Residue_PHOSPHORYLATED`, `..._UnitOfInformation`,
+  `minerva_dimer_...`), each state and unit placed by a general glyph with its text ("P", "N:2"). They are read as state
+  variables (EMPTY an empty one), units of information and the count, on each glyph of the species, where the general
+  glyph places them. Multi as the package specifies it (species types with sites) is not read.
+- Left out and said: layouts after the first, general glyphs other than SBML-qual boxes and MINERVA's states, reactions
   without a glyph, glyphs without a box. A file without a layout, or without species glyphs, is refused.
 - Render: each glyph's style by its id, else by its glyph type (typeList), the layout's own styles over the global
   ones: a species' or compartment's fill, a compartment's outline colour and width, a line's colour, a label's font
