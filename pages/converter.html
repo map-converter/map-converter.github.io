@@ -112,7 +112,7 @@ noindex: true
   // Each file: [name ending, button label, text, log, red]; the converter's
   // messages are kept for the page, its summary ("46 species, ...") left out
   const DRIVER = `
-import os, sys
+import os, re, sys
 sys.path.insert(0, '/home/pyodide')
 from mapconv import routes
 import cdrender
@@ -140,7 +140,7 @@ def convert(name, data, standard=False, skipped=()):
     for i, o in enumerate(routes.outputs(p, standard)):
         end = o.ending.replace('-advanced', '')
         endings.append(end)
-        if end in skipped or end.rsplit('.', 1)[-1] in skipped:
+        if re.sub(r'^-map\d+', '', end) in skipped or end.rsplit('.', 1)[-1] in skipped:  # -map2: an SBGN-ML file's later maps
             continue
         # text None and no messages: GraphML (corrected) or (standard sizes) not given for this map
         text, said = routes.made(o)
@@ -247,7 +247,7 @@ def convert(name, data, standard=False, skipped=()):
     : i.value.split(' ').includes(a) && i.value.split(' ').includes(b)));
   const formatOf = end => end.split('.').pop();
   function wanted(end, src) {
-    const to = formatOf(end), mode = document.querySelector('.cv-modes input[value="' + end + '"]');
+    const to = formatOf(end), mode = document.querySelector('.cv-modes input[value="' + end.replace(/^-map\d+/, '') + '"]');  // -map2: a later map
     return (!to || to === src || joined(src, to)) && (!mode || mode.checked);
   }
 
