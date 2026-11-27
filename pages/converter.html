@@ -311,7 +311,7 @@ def convert(name, data, standard=False, skipped=()):
         if (red) { problems.push(log); continue; }
         const shown = label.replace(/ \((.*)\)$/, ' $1');
         for (const l of new Set(log.split('\n').map(l => l.trim()).filter(l => l))) {
-          const m = xml ? notes : errors;
+          const m = xml && !l.startsWith('count check') ? notes : errors;   // the count check's unexplained differences in red
           if (!m.has(l)) m.set(l, []);
           m.get(l).push(shown);
         }

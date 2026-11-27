@@ -3,6 +3,6 @@
   window.MAPCONV = {
     base: '{{ "/converter/mapconv/" | relative_url }}',
     modules: ['model', 'report', 'graphml', 'annotation', 'biology', 'celldesigner', 'cd_layout', 'layout', 'newt_layout',
-              'cd_tidy', 'style', 'sbgnml', 'sbml', 'rules', 'routes'],
+              'cd_tidy', 'style', 'sbgnml', 'sbml', 'rules', 'count', 'routes'],
     data: ['yed.graphml', 'conjugates.json']  // the yEd templates; ChEBI's conjugate acids and bases
   };
