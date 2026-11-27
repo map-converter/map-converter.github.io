@@ -13,6 +13,11 @@ Changes inside the code that leave every file the same are listed only when they
 
 ## 2026-11-27
 
+- Newt, SBGN-ML and CellDesigner files: a line drawn to or from a member inside a complex is joined to the complex,
+  and a line between two members of one complex is left out, as for yEd files (SBGN PD 2.1, 2.3.4: a complex's
+  subunit has no arcs); each said in the messages. Before, the CellDesigner file named the member as the reaction's
+  modifier, a species its SBML does not have (Newt's sample of CaMK signalling).
+
 - Every file made is counted against its input, by kind (entities by class and name, compartments, processes, logic
   gates, arcs by type), from the two files' XML: a difference no other message explains is said in red, so a lost arc
   or two merged nodes no longer go unseen ([Messages](/converter/docs/messages/#the-count-check)). A CellDesigner file's SBML core
