@@ -13,6 +13,17 @@ Changes inside the code that leave every file the same are listed only when they
 
 ## 2026-11-27
 
+- Every file made is counted against its input, by kind (entities by class and name, compartments, processes, logic
+  gates, arcs by type), from the two files' XML: a difference no other message explains is said in red, so a lost arc
+  or two merged nodes no longer go unseen ([Messages](/converter/docs/messages/#the-count-check)). A CellDesigner file's SBML core
+  is checked against its CellDesigner annotation, reaction by reaction.
+- SBGN-ML: a site the map does not draw (a circle showing P, its site P@S1177 in the property PTM) is written as a site
+  link on the glyph (`urn:sbgn:site:...`), not on the state variable, so Newt and other tools draw P as the map does,
+  where they drew P@S1177 inside a circle sized for P; read back into PTM. A site the map draws stays on its state
+  variable, its box as wide as its text.
+- A state variable's box in SBGN-ML is as wide as its text needs (a long value or a drawn site ran out of its 45 px box).
+- An arc drawn in yEd to a member of a complex is joined to the complex, said in the messages, where it went to the
+  member (which neither SBGN nor CellDesigner allows).
 - CellDesigner files: a compartment's name that reached past the compartment's right or bottom edge is written inside
   it, where CellDesigner itself moved it when the file was first saved (SREBP's Golgi and COPII-coated vesicle).
 

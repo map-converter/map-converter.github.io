@@ -24,7 +24,7 @@ cd2sbgnml read. It writes from yEd GraphML and reads the way back.
   the rest. A compartment's label keeps its place (label bbox from the yEd label), and its outline width
   (the render extension's stroke-width).
 - State variables: `P@S455` is value `P`, variable `S455` (the spec's own example: P@T286),
-  placed where yEd has the icon. Units of information where the file places them, each by its order on the glyph;
+  placed where yEd has the icon, its box as wide as its text needs. Units of information where the file places them, each by its order on the glyph;
   a unit with no place is spread along the top edge, as the GraphML writer does.
 - Processes and gates get the two ports the spec asks for (2.10), on the line from the inputs
   (consumptions, gate inputs) to the outputs, the stick half the glyph's side long (at least 9 px, the viewer's
@@ -57,10 +57,13 @@ cd2sbgnml read. It writes from yEd GraphML and reads the way back.
 - References (the node property References, `pubmed:12345 doi:10.x/y`, on a process above all): `bqbiol:isDescribedBy`
   in the glyph's extension, one bag per reference, as MINERVA holds a reaction's (`identifiers.org/pubmed:12345`; PubMed,
   DOI and Reactome; others are reported as left out).
-- Sites: a state variable drawn with its value only (`P`) takes its site from the node property PTM (`P@S1177`), each
-  circle the first unused site of its value, in the order drawn, written as the state's `variable`
-  (`<state value="P" variable="S1177"/>`). The sites no circle takes (more sites than circles) go into the glyph's notes
-  as `PTM: P@Y1190 P@Y999`, so no site is lost.
+- Sites, as drawn: a state variable that shows its site (`P@S1177`) is written with it, `<state value="P"
+  variable="S1177"/>`, and every SBGN tool draws P@S1177. A state variable drawn with its value only (`P`) takes its
+  site from the node property PTM (`P@S1177`), each circle the first unused site of its value, in the order drawn, and
+  is written with its value only, `<state value="P"/>`, the site kept as an RDF link on its glyph,
+  `bqbiol:hasProperty` `urn:sbgn:site:<state variable id>:P@S1177`, so other tools draw P as the map does and keep the
+  site (Newt keeps such links and drops a glyph's notes). The sites no circle takes (more sites than circles) go into
+  the glyph's notes as `PTM: P@Y1190 P@Y999`, so no site is lost.
 - The map has `language="process description"`, not `version`: libsbgn's schema lists no PD
   version after 1.3.
 
@@ -130,7 +133,10 @@ each message list naming the map ("map 2 of 3 in the file (id)"). Test: `tests/s
   MIRIAM URN is left out of CellDesigner, said). A family written one link per bag (MINERVA) has the links of one
   database as its members (the first of HGNC symbol, HGNC, UniProt, ChEBI), its other links kept as read. `isDescribedBy` (either
   qualifier set) on a glyph into its property References; the note line `PTM:` into the property PTM. A state's
-  `variable` is read into the state variable's text (`P@S1177`).
+  `variable` is read into the state variable's text (`P@S1177`, drawn). A site link (`urn:sbgn:site:`) gives its site
+  to the state variable it names, else to the first one of its value that shows no site; these sites go into the
+  property PTM in the order of the circles, then the note's, and the circle keeps its value alone. GraphML keeps no
+  place per circle, so of two circles of one value where only the second has a site, the site comes back on the first.
 - Arcs: ports back to their glyph, bends from `next` points; an end where the file puts it (a yEd port), unless it
   lies on the line from the glyph's centre toward its next point, which the centre (0, 0, the yEd convention) draws
   the same (Newt stops short of a glyph for the arrowhead); an end at a process's or gate's port at the port itself (an arc's start always, its end for a consumption or
