@@ -13,6 +13,11 @@ Changes inside the code that leave every file the same are listed only when they
 
 ## 2026-11-27
 
+- CellDesigner files: a reaction whose type is an arrowhead (inhibition, trigger, catalysis, modulation, physical
+  stimulation) drawn from one entity to another is read as one arc of that kind between them, as MINERVA draws it.
+  Before, inhibition, trigger, catalysis and modulation of this kind became a process glyph with a consumption and a
+  production arc, the arrowhead lost (the PD map's autophagy: two inhibitions and two triggers into autophagy).
+
 - Newt, SBGN-ML and CellDesigner files: a line drawn to or from a member inside a complex is joined to the complex,
   and a line between two members of one complex is left out, as for yEd files (SBGN PD 2.1, 2.3.4: a complex's
   subunit has no arcs); each said in the messages. Before, the CellDesigner file named the member as the reaction's

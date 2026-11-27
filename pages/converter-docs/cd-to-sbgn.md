@@ -135,6 +135,7 @@ segments level or upright, as CellDesigner draws them, against 15 with such a fr
 | REDUCED_PHYSICAL_STIMULATION (+ UNKNOWN_) | stimulation | stimulation arc (UNKNOWN_: dashed, as unknown catalysis) |
 | REDUCED_MODULATION (+ UNKNOWN_) | modulation | modulation arc (UNKNOWN_: dashed, as unknown catalysis) |
 | REDUCED_TRIGGER (+ UNKNOWN_) | necessary stimulation | trigger arc (UNKNOWN_: dashed, as unknown catalysis) |
+| a modifier's type as the reaction's own (CATALYSIS, INHIBITION, TRIGGER, MODULATION, PHYSICAL_STIMULATION, their UNKNOWN_, TRANSCRIPTIONAL_ and TRANSLATIONAL_ kinds), between two entities | | an arc of that kind, entity to entity, as MINERVA draws it (no process glyph) |
 | a link pointing at another link | omitted (Limitations page) | omitted, with a warning |
 | logic gate on a reduced arc (trigger 1 AND trigger 2 -> B) | logic arcs | Operator + logic arcs, then the reduced arc from the operator |
 | a reduced arc ending on a reduced arc (c inhibits A -> B) | omitted | omitted, with a warning |
