@@ -13,6 +13,9 @@ Changes inside the code that leave every file the same are listed only when they
 
 ## 2026-11-27
 
+- CellDesigner files: a compartment's name that reached past the compartment's right or bottom edge is written inside
+  it, where CellDesigner itself moved it when the file was first saved (SREBP's Golgi and COPII-coated vesicle).
+
 - CellDesigner files (straight & bends, advanced, as drawn): a reaction's second and further reactants and products
   keep the input's bends, each leg level or upright, where they were drawn as one straight line into the reaction (the
   binding of cAMP to PKA, of insulin to its receptor: long diagonals across the map).

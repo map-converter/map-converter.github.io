@@ -296,8 +296,10 @@ in CellDesigner):
 - CellDesigner on saving: compartment `namePoint` 12.5 lower (the text
   baseline); a name whose box would reach past the compartment's inner edge moved back inside it (its
   box the widest line, 23 high: the membrane's thickness + 5 from a side, + 0.5 from the bottom; SREBP's
-  Golgi 3.5 px left, COPII-coated vesicle 24.5 px up). The converter writes the name where the input
-  has its label, so such a name moves on the first save; a `celldesigner:name` in each compartment's annotation; the
+  Golgi 3.5 px left, COPII-coated vesicle 24.5 px up; a name near the left or top edge stays). The
+  converter writes the name where the input has its label and, where its box would reach past the right
+  or bottom edge, there (2 px more at the right: CellDesigner's widths run up to 1.8 px wider than the
+  converter's), so a plain save moves nothing; a `celldesigner:name` in each compartment's annotation; the
   usual-view `innerPosition` of an alias in a compartment = its offset from
   the top left of its (innermost) compartment. The converter writes all three.
 
