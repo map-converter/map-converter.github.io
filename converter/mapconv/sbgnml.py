@@ -279,7 +279,7 @@ def write(diagram, newt=False, af=None):
         if len(uris) < len(refs):
             report.say('left out', '%s: references of databases SBGN-ML links are not written for: %s' % (
                 lab or i, ' '.join(u for u in refs if u.split(':')[2] not in DB)))
-        bags += [(BQMODEL, 'isDescribedBy', [u]) for u in uris]
+        bags += [(BQBIOL, 'isDescribedBy', [u]) for u in uris]
         if bags:
             rdf(g, i, bags)
 

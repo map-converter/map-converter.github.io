@@ -11,8 +11,39 @@ What changed for people who use the converter, newest first, by the date it went
 Changes inside the code that leave every file the same are listed only when they change how the converter works.
 
 
+## 2026-11-27
+
+- CellDesigner files (straight & bends, advanced, as drawn): a reaction's second and further reactants and products
+  keep the input's bends, each leg level or upright, where they were drawn as one straight line into the reaction (the
+  binding of cAMP to PKA, of insulin to its receptor: long diagonals across the map).
+- Such a line with bends on a metabolite leaves its circle above, below or at the lower quarter of a side, where the
+  name is not, as main lines and modifiers already did.
+- A node with several units of information: CellDesigner draws one per node, so the others went missing in the
+  CellDesigner file; now they are kept in the species' notes ("Unit of information, drawn: ...") and drawn again when
+  the file is read back, when every glyph of that species has them (else they are left out, as before).
+- Names broken over lines keep their breaks in CellDesigner (written as CellDesigner's `_br_`), where they were
+  joined on one line and ran out of their shape (the phenotypes Histone acetylation, Cholesterol biosynthesis); a
+  CellDesigner name with `_br_` comes to GraphML and SBGN-ML broken there too, where `_br_` stayed in the name.
+- Two modifiers ending on the same side of a process glyph go to that side's two corners in CellDesigner, where their
+  circles were drawn on top of each other (nNOS: PP1C and PP2AC).
+- A line whose end the input put inside its node, nearer the far side, takes CellDesigner's place where the line
+  meets the node, where it took the far side's and ran through the node (SREBP: sterol binding through SCAP and
+  SREBP2).
+- CellDesigner files (straight & bends, advanced): a process glyph that a modifier, a logic gate or a second
+  reactant or product meets stays where the input has it, held by two edit points beside it, where CellDesigner put
+  it midway on its line and those lines ran across the map to it (cAMP: PDE3B's line to cAMP -> AMP, 186 px).
+- A modifier's line that the input starts level or upright from a point off its node's centre leaves from the
+  CellDesigner place nearest that line, where it left from the centre and ran through its neighbours (mevalonate:
+  PP2A's line to HMGCR, below PP2C and HMGCR).
+- CellDesigner to GraphML and SBGN-ML: an association or dissociation has its process where CellDesigner draws it,
+  on the single line before or after the point where the three lines meet, where it sat on that point (up to 250 px
+  off in the PD map's autophagy submap; 12 of ReconMap 2's 22 such reactions 30 px or more).
+
 ## 2026-11-26
 
+- A process's references (PubMed, DOI) are written as `bqbiol:isDescribedBy` in CellDesigner and SBGN-ML, the
+  qualifier for evidence about the biology, where they were written as `bqmodel:isDescribedBy`, which says the paper
+  describes the map itself. Files holding either are read as before.
 - Activity Flow maps are written as Activity Flow: an SBML-qual model, or an Activity Flow map from SBGN-ML or GraphML,
   converted to SBGN-ML gave a Process Description map (macromolecules and stimulations) that Newt and libSBGN read as
   the wrong language; now each activity is a biological activity with its entity in its unit of information, the arcs

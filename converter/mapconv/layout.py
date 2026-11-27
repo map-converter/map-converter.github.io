@@ -370,9 +370,9 @@ def visible(m):
     return m
 
 
-def bends(route):
+def bends(route, eps=EPS):
     # the bends that shape a route (advanced layout), its ends left out
-    return _simplify(route, EPS)[1:-1]
+    return _simplify(route, eps)[1:-1]
 
 
 def corner(a, b, way):

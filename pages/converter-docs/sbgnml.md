@@ -54,7 +54,7 @@ cd2sbgnml read. It writes from yEd GraphML and reads the way back.
 - Annotation: RDF in each glyph's extension, `bqbiol:is` (a family: `bqbiol:hasVersion`),
   identifiers.org links in Newt's form (`http://identifiers.org/uniprot:P53396`, `CHEBI:16947`,
   `hgnc:115`, `hgnc.symbol:ACLY`), from the same annotation as the CellDesigner writer.
-- References (the node property References, `pubmed:12345 doi:10.x/y`, on a process above all): `bqmodel:isDescribedBy`
+- References (the node property References, `pubmed:12345 doi:10.x/y`, on a process above all): `bqbiol:isDescribedBy`
   in the glyph's extension, one bag per reference, as MINERVA holds a reaction's (`identifiers.org/pubmed:12345`; PubMed,
   DOI and Reactome; others are reported as left out).
 - Sites: a state variable drawn with its value only (`P`) takes its site from the node property PTM (`P@S1177`), each

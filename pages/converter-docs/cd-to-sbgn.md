@@ -11,9 +11,12 @@ Rules for the backward direction (CellDesigner -> GraphML). Implemented in `cell
 `graphml.write` (`python3 -m mapconv <map.xml> <out.graphml>`), for the CellDesigner files the converter
 writes (as a round trip) and for CellDesigner's own files: the PD map (autumn 2025 version, 41 files)
 reads without error. Branched reactions (association, dissociation, truncation) become one
-process at the branch point: the last edit point in the frame of the three species (origin
+process where CellDesigner draws its glyph: midway on segment tShapeIndex of the single arm (from the
+branch point to the product of an association, from the reactant to the branch point of a
+dissociation). The branch point: the last edit point in the frame of the three species (origin
 the first, axes to the other two), each branch's edit points (num0, num1, num2) in the frame
-branch point -> its species (cd2sbgnml, AssociationReactionModel). Logic gates on reduced arcs
+branch point -> its species (cd2sbgnml, AssociationReactionModel); the two other branches run
+through it to the process. Logic gates on reduced arcs
 are BOOLEAN_LOGIC_GATE reactions (inputs as base reactants, the gate at the edit point,
 absolute; GateMember list) both ways; CellDesigner has no gate feeding a gate. Inhibition
 between entities: NEGATIVE_INFLUENCE (forward); modulation and trigger between entities:

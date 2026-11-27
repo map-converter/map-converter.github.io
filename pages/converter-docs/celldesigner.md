@@ -59,12 +59,21 @@ CellDesigner, so `diff` against a returned file shows only real changes.
 - Proteins: `urn:miriam:hgnc.symbol:X` and `urn:miriam:uniprot:Y`, in member
   pairs. The old files have no HGNC numeric ID; the converter adds
   `urn:miriam:hgnc:N` (CellDesigner keeps it).
-- Metabolites: `urn:miriam:obo.chebi:CHEBI%3A12345`. Other forms are dropped
-  by CellDesigner on saving, without a message.
-- References on a reaction: `bqmodel:isDescribedBy` with
+- Metabolites: `urn:miriam:obo.chebi:CHEBI%3A12345`. Another namespace for
+  ChEBI (`chebi`) is dropped by CellDesigner on saving, without a message.
+- What CellDesigner 4.4.2 keeps on saving goes by the namespace, not the
+  accession (an annotation test file opened and saved in CellDesigner): a `urn:miriam:` link whose namespace is in its MIRIAM list is kept
+  as written, even an accession that is wrong for it (`obo.chebi:15346`, no
+  `CHEBI:`); a namespace outside its list (`chebi`, identifiers.org's current
+  name; `metanetx.chemical`) and any address that is not a URN
+  (`https://identifiers.org/CHEBI:15346`) are dropped without a message. Kept:
+  pubmed, doi, uniprot, hgnc, ncbigene, obo.go, mesh, obo.chebi, hmdb,
+  pubchem.compound; `bqbiol` and `bqmodel` qualifiers alike, bags as written.
+- References on a reaction: `bqbiol:isDescribedBy` with
   `urn:miriam:pubmed:N` in the reaction's annotation (F021 has three), one bag per
-  reference, as MINERVA maps hold them (some in `bqmodel`; the PD map mostly
-  `bqbiol`, and MINERVA shows both). Written from the process
+  reference, as the COVID-19 Disease Map's source holds them and its curation
+  guidelines ask ("generic and preferred: bqbiolisDescribedby"); `bqmodel` says
+  the paper describes the map itself. Both are read; MINERVA shows both. Written from the process
   glyph's property References and read back into it; a DOI as
   `urn:miriam:doi:10.1016%2Fj.jaci.2020.12.155`.
 - Species inside a complex (`listOfIncludedSpecies` in the model extension)
@@ -91,6 +100,9 @@ CellDesigner, so `diff` against a returned file shows only real changes.
   right (side middles); `-1,4`/`-1,5` the left corners, upstream/downstream, `-1,6`/`-1,7`
   the right ones (MINERVA's `getAnchorPointOnReactionRect`; confirmed by MINERVA's SBGN-ML of
   a hand edit of PDH, which uses 6 and 7).
+  Two modifiers that would end on one side's middle are written to that side's corners when
+  both are free, the one further back along the flow upstream; the advanced file's tidy moves
+  line a modifier up with its corner.
 - Modifier edit points: attribute `editPoints="u,v ..."` on the
   `modification` element, one `lineDirection` per segment. Frame: origin =
   the modifier's port, x axis = to the arc's end on the process
@@ -217,6 +229,9 @@ MINERVA (glycolysis v01).
   ones; F021 (made in CellDesigner) lists an inhibitor.
 - Greek letters in names: `_epsilon_` and the rest of the alphabet, as
   `_alpha_`.
+- Line breaks in names: `_br_` (CellDesigner's own, `Histone_br_acetylation`), written for a break
+  in the input's name and read back as one; a species' name only, the protein, gene and RNA lists
+  keep the name on one line.
 
 ## CellDesigner symbols and the yEd maps
 
@@ -378,8 +393,9 @@ CellDesigner (HSP90 + CAV1:CaM:eNOS -> CaM:HSP90:CAV1:eNOS + CaM).
   (its port, else its centre) to the point where the link joins the main line, or the
   other way for a product (join -> species). The join is on the segment with the process glyph
   (rectangleIndex), at 3/8 of it for a reactant, 5/8 for a product, the segment's ends
-  where CellDesigner draws them (a species' port, else its border). Read; the writer
-  still writes added links straight.
+  where CellDesigner draws them (a species' port, else its border). Read, and written from
+  the input's bends in every layout but straight, each leg level or upright, the first in line
+  with the species' centre, the last with the join.
 - Added reactant/product links to a centre: no linkAnchor (CellDesigner's
   save of mevalonate v01 drops an INACTIVE written there).
 
@@ -641,14 +657,19 @@ tidy moves (`cd_tidy.py`): main lines up to 10 px off straightened,
 the other end of a level line into a larger node beside its centre moved in line with where the line meets
 that node, its centre or the place it takes (iNOS CaM 23.6 px onto the centre line; moved 25 px by hand twice), a modifier up to 15 px onto its process glyph, on a drawing with the
 process glyph placed only for a modifier straight across that could not be moved. Straight line moves no
-node.
+node. In both (straight & bends and advanced), a process glyph that something meets (a modifier, a logic
+gate, an added reactant or product) is held where yEd has it when that is more than 10 px from midway,
+within 30 px of the line and between 0.1 and 0.9 of its segment: two edit points on the line 10 px either
+side (fewer where an end node is nearer); else its lines run across the map to midway (cAMP: PDE3B, 186 px).
 
 Modifier arcs: the end on the process glyph. A process with several modifier arcs, one of which yEd
 ends off the process's centre (more than 2 px): that arc ends at the process glyph's point nearest its yEd
 port (a corner, `-1,4` to `-1,7`, or a side middle), so the arcs do not merge into one line
 (PDH: PDK, pyruvate and dichloroacetate on the PDK step, acetyl-CoA and NADH on
 PDH; a hand edit of PDH in CellDesigner has the same points). Else the side facing the
-modifier. A modifier arc counts as straight across when it is in line with its yEd port
+modifier. A modifier arc with bends that yEd starts level or upright from a port more than 3 px off the
+node's centre line leaves from the place on the side facing its first bend nearest that lane (within
+12 px), the lane kept from there (mevalonate: PP2A to HMGCR). A modifier arc counts as straight across when it is in line with its yEd port
 or with the process's centre. This applies to TAG (2 arcs), BCAA (4), PDH (6; PDK 5 px left onto its
 corner). Back to yEd (advanced) the arc ends at the same point of the 18 px process: corners at
 (9, 9), side middles at (0, 9) across the flow, so GraphML -> CellDesigner ->
@@ -704,8 +725,10 @@ CellDesigner saves a unit of information with free text on the species alias as
 (`tests/celldesigner/free-text-unit.xml`, saved in CellDesigner), the same element as ct:gene with
 another prefix. The writer gives every other unit this form (SREBP "precursor",
 "processed form", "mature form"); the reader takes the
-label alone. One info per alias: a node with more units keeps a ct: unit first, the rest is
-reported left out. CellDesigner shows the label alone ("example..." cut to the box); MINERVA (22.0.1)
+label alone. One info per alias: a node with more units draws a ct: unit first, the rest go into
+the species' notes as the line "Unit of information, drawn: glycogen; N:n+1", read back as drawn
+units of every alias of the species; so only the units every glyph of the species has go there, the
+others are reported left out. CellDesigner shows the label alone ("example..." cut to the box); MINERVA (22.0.1)
 draws and exports "free input:precursor", the prefix with the label.
 
 ## Notes: family name and members' sites
