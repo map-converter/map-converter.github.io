@@ -90,8 +90,8 @@ are those of the yEd SBGN palette (`model.py` kinds).
 | TRANSPORT (translocation) | process | Process |
 | TRANSCRIPTION | process | Process |
 | TRANSLATION | process | Process |
-| HETERODIMER_ASSOCIATION | association | **Process** (the maps use no association or dissociation glyphs) |
-| DISSOCIATION | dissociation | **Process** |
+| HETERODIMER_ASSOCIATION | association | association (kept as the process's SBGN class; GraphML draws a process, SBML SBO:0000177) |
+| DISSOCIATION | dissociation | dissociation (as above; SBML SBO:0000180) |
 | TRUNCATION | dissociation (Limitations page) | **Process** |
 | reactants, products, added reactant/product links | consumption, production | consumption, production arcs |
 | homodimer formation (STATE_TRANSITION to a multimer), degradation (to DEGRADED) | process | Process; nothing special |

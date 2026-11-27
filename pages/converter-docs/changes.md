@@ -13,6 +13,10 @@ Changes inside the code that leave every file the same are listed only when they
 
 ## 2026-11-27
 
+- CellDesigner files: an irreversible heterodimer association or dissociation is written as SBGN's association or
+  dissociation glyph (SBML: SBO:0000177 and SBO:0000180), the author's choice kept. Before, both became a generic
+  process. A truncation, and a reversible association, stay a process.
+
 - CellDesigner files: a reaction whose type is an arrowhead (inhibition, trigger, catalysis, modulation, physical
   stimulation) drawn from one entity to another is read as one arc of that kind between them, as MINERVA draws it.
   Before, inhibition, trigger, catalysis and modulation of this kind became a process glyph with a consumption and a

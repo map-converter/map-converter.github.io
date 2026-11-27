@@ -697,6 +697,7 @@ KIND = {'PROTEIN': 'Macromolecule', 'GENE': 'NucleicAcidFeature', 'RNA': 'Nuclei
 UNIT = {'GENE': 'ct:gene', 'RNA': 'ct:mRNA', 'ANTISENSE_RNA': 'ct:asRNA'}  # when the file has no ct: unit
 PROCESS = {'KNOWN_TRANSITION_OMITTED': 'OmittedProcess', 'UNKNOWN_TRANSITION': 'UncertainProcess'}  # others: Process
 PROCESSES = ('Process',) + tuple(PROCESS.values())
+BINDING = {'HETERODIMER_ASSOCIATION': 'association', 'DISSOCIATION': 'dissociation'}  # TRUNCATION stays a process (a covalent bond broken)
 HEAD = {v: k for k, v in MOD.items()}
 HEAD.update({'UNKNOWN_CATALYSIS': 'catalysis', 'UNKNOWN_INHIBITION': 'inhibition',
              'TRANSCRIPTIONAL_ACTIVATION': 'stimulation', 'TRANSLATIONAL_ACTIVATION': 'stimulation',
@@ -993,8 +994,10 @@ def read(path):
         else:
             report.say('left out', 'reaction %s (%s): %d base reactants, %d base products, left out' % (rid, typ, len(br), len(bp))); continue
         S = 18.0  # the process size in the atlas yEd maps
-        nodes[rid] = Node(id=rid, kind=PROCESS.get(typ, 'Process'), box=(sq[0] - S / 2, sq[1] - S / 2, S, S), labels=[''],
-                          data={'References': refs(rx)} if refs(rx) else {})
+        data = {'References': refs(rx)} if refs(rx) else {}
+        if typ in BINDING and rx.get('reversible') == 'false':  # the author's choice of a non-covalent binding kept as SBGN's
+            data['SBGN class'] = BINDING[typ]  # glyph (DRAWN_AS), drawn as a process here; reversible: a process (SBGN's are irreversible)
+        nodes[rid] = Node(id=rid, kind=PROCESS.get(typ, 'Process'), box=(sq[0] - S / 2, sq[1] - S / 2, S, S), labels=[''], data=data)
         reversible = rx.get('reversible') != 'false'
         stoich = {(sr.findtext('s:annotation/cd:extension/cd:alias', None, ns), lst == 'Reactants'): count_text(sr.get('stoichiometry'))
                   for lst in ('Reactants', 'Products') for sr in xs(rx, 's:listOf%s/s:speciesReference' % lst)}
