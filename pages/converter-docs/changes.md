@@ -11,6 +11,12 @@ What changed for people who use the converter, newest first, by the date it went
 Changes inside the code that leave every file the same are listed only when they change how the converter works.
 
 
+## 2026-11-28
+
+- CellDesigner files: a drug is read as a simple chemical when the file gives it a ChEBI, PubChem compound, KEGG compound
+  or DrugBank identifier, else as an unspecified entity (a mixture, a class of drugs or a peptide is not one molecule).
+  Before, every drug became a simple chemical.
+
 ## 2026-11-27
 
 - CellDesigner files: an irreversible heterodimer association or dissociation is written as SBGN's association or

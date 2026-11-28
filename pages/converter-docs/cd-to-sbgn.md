@@ -59,7 +59,7 @@ are those of the yEd SBGN palette (`model.py` kinds).
 | ANTISENSE_RNA | nucleic acid feature + unit "asRNA" | NucleicAcidFeature + unit "ct:asRNA" |
 | SIMPLE_MOLECULE | simple chemical | SimpleChemical |
 | ION | simple chemical | **SimpleChemical** |
-| DRUG | simple chemical + unit "drug" | **SimpleChemical, white fill** to tell it apart |
+| DRUG | simple chemical + unit "drug" | **SimpleChemical, white fill** when it has a ChEBI, PubChem compound, KEGG compound or DrugBank identifier, else **UnspecifiedEntity** |
 | UNKNOWN | unspecified entity | UnspecifiedEntity |
 | COMPLEX | complex | Complex, members inside |
 | PHENOTYPE | phenotype | **Phenotype**; with the note line `SBGN class: submap` (or `perturbing agent`) yEd's Submap (or PerturbingAgent), the node property SBGN class kept. Nothing is guessed from the arcs |
@@ -188,8 +188,9 @@ only to check against.
   one identifier: it gets the unit not drawn "truncated" (the node property Unit of information, a notes line in
   SBGN-ML and CellDesigner), so it is never merged with the full protein.
 - Ion channel open/closed: a state variable, as in cd2sbgnml.
-- ION and DRUG: simple chemical, a drug told apart by a white fill (cd2sbgnml adds a "drug" unit); the drug
-  maps (aspirin) draw drugs as plain simple chemicals.
+- ION: simple chemical. DRUG: a simple chemical with a white fill when the file gives it a compound database's
+  identifier (ChEBI, PubChem compound, KEGG compound, DrugBank), else an unspecified entity, as a mixture, a class of
+  drugs or a peptide is not one molecule; read from the file alone (cd2sbgnml adds a "drug" unit).
 - Phenotype comes back as Phenotype, unless its notes say `SBGN class: submap` or `perturbing agent` (written by this converter).
 - Truncation: a plain Process with the truncated protein as product (cd2sbgnml: Dissociation).
 - Unknown catalysis and inhibition (dashed in CellDesigner): the arc dashed in yEd, to keep the "unknown".
